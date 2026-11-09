@@ -66,15 +66,19 @@ return [
     | You can configure the component type (sfc, mfc, class) and whether to use
     | the high-voltage (⚡) emoji as a prefix in the sfc|mfc component names.
     |
+    | Workbench: logic and markup live in separate files. `make:livewire` creates
+    | a class in app/Livewire and its Blade view in resources/views/livewire,
+    | plus a Pest test. See docs/arquitectura/livewire.md.
+    |
     */
 
     'make_command' => [
-        'type' => 'sfc', // Options: 'sfc', 'mfc', 'class'
-        'emoji' => true, // Options: true, false
+        'type' => 'class', // Options: 'sfc', 'mfc', 'class'
+        'emoji' => false, // Options: true, false
         'with' => [
             'js' => false,
             'css' => false,
-            'test' => false,
+            'test' => true,
         ],
     ],
 
@@ -194,7 +198,7 @@ return [
 
     'navigate' => [
         'show_progress_bar' => true,
-        'progress_bar_color' => '#2299dd',
+        'progress_bar_color' => '#B98F66',
     ],
 
     /*
