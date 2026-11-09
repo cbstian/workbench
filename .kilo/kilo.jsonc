@@ -1,0 +1,26 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "mcp": {
+    "tallstackui": {
+      "type": "remote",
+      "url": "https://tallstackui.com/mcp/tallstackui",
+      "enabled": true
+    },
+    "apexcharts": {
+      "type": "local",
+      "command": ["npx", "-y", "apexcharts-mcp"],
+      "environment": {
+        "APEXCHARTS_MCP_PRODUCTS": "charts,gantt,tree,sankey,grid,stock"
+      },
+      "enabled": true
+    },
+    "laravel-boost": {
+      "type": "local",
+      "command": [
+        "php",
+        "artisan",
+        "boost:mcp"
+      ]
+    }
+  }
+}
