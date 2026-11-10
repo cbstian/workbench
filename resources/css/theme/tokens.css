@@ -1,0 +1,79 @@
+/*
+ * Semantic design tokens.
+ *
+ * Every token has a light value (:root) and a dark value (.dark). Markup uses
+ * the Tailwind utilities generated from @theme inline below, for example:
+ *
+ *   bg-canvas  bg-sidebar  bg-surface  text-ink  text-ink-muted  border-line
+ *
+ * so switching themes never requires `dark:` variants in application views.
+ */
+@layer base {
+    :root {
+        --wb-canvas: #ffffff;
+        --wb-sidebar: #f7f7f5;
+        --wb-surface: #ffffff;
+        --wb-surface-muted: #fbfbfa;
+        --wb-ink: #37352f;
+        --wb-ink-muted: #787774;
+        --wb-ink-subtle: #a5a29c;
+        --wb-line: #edece9;
+        --wb-line-strong: #e0deda;
+        --wb-hover: rgb(55 53 47 / 0.06);
+        --wb-active: rgb(55 53 47 / 0.09);
+        --wb-accent: var(--color-primary-500);
+        --wb-ring: rgb(143 107 74 / 0.35);
+
+        /* Brand mark */
+        --wb-brand-tile: #d8b48e;
+        --wb-brand-edge: #b98f66;
+        --wb-brand-glyph: #fbfaf8;
+        --wb-brand-shadow: rgb(138 104 71 / 0.35);
+
+        /* Landing backdrop */
+        --wb-glow-a: rgb(216 180 142 / 0.38);
+        --wb-glow-b: rgb(180 178 173 / 0.2);
+        --wb-grid-dot: rgb(55 53 47 / 0.09);
+    }
+
+    .dark {
+        --wb-canvas: #191918;
+        --wb-sidebar: #202020;
+        --wb-surface: #252524;
+        --wb-surface-muted: #1f1f1e;
+        --wb-ink: #e6e5e3;
+        --wb-ink-muted: #9b9a97;
+        --wb-ink-subtle: #6b6a66;
+        --wb-line: #2f2f2d;
+        --wb-line-strong: #3f3e3b;
+        --wb-hover: rgb(255 255 255 / 0.055);
+        --wb-active: rgb(255 255 255 / 0.085);
+        --wb-accent: var(--color-primary-400);
+        --wb-ring: rgb(185 151 111 / 0.4);
+
+        --wb-brand-tile: #4b3429;
+        --wb-brand-edge: #2e1f18;
+        --wb-brand-glyph: #dcb67c;
+        --wb-brand-shadow: rgb(28 19 14 / 0.35);
+
+        --wb-glow-a: rgb(75 52 41 / 0.55);
+        --wb-glow-b: rgb(220 182 124 / 0.08);
+        --wb-grid-dot: rgb(255 255 255 / 0.06);
+    }
+}
+
+@theme inline {
+    --color-canvas: var(--wb-canvas);
+    --color-sidebar: var(--wb-sidebar);
+    --color-surface: var(--wb-surface);
+    --color-surface-muted: var(--wb-surface-muted);
+    --color-ink: var(--wb-ink);
+    --color-ink-muted: var(--wb-ink-muted);
+    --color-ink-subtle: var(--wb-ink-subtle);
+    --color-line: var(--wb-line);
+    --color-line-strong: var(--wb-line-strong);
+    --color-hover: var(--wb-hover);
+    --color-active: var(--wb-active);
+    --color-accent: var(--wb-accent);
+    --color-ring: var(--wb-ring);
+}

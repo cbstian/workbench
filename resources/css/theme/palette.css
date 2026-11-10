@@ -1,0 +1,67 @@
+/*
+ * Raw color scales and font families (Tailwind @theme).
+ *
+ * These scales replace Tailwind's default `gray` and TallStackUI's `primary`,
+ * `secondary` and `dark` scales, so every TallStackUI component picks up the
+ * Workbench look without per-component customization.
+ *
+ * - primary:   oak/walnut, taken from the brand block (buttons, focus rings, links).
+ * - secondary: warm neutral, for low-emphasis actions.
+ * - gray:      warm Notion-like neutrals used by TallStackUI in light mode.
+ * - dark:      near-black neutrals used by TallStackUI in dark mode.
+ *
+ * Prefer the semantic tokens in tokens.css in application markup; use these
+ * scales only when a semantic token does not fit.
+ */
+@theme {
+    --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+
+    --color-primary-50: #faf7f3;
+    --color-primary-100: #f3ece3;
+    --color-primary-200: #e6d7c5;
+    --color-primary-300: #d4bc9f;
+    --color-primary-400: #b9976f;
+    --color-primary-500: #8f6b4a;
+    --color-primary-600: #7a5a3e;
+    --color-primary-700: #644934;
+    --color-primary-800: #4f3a2a;
+    --color-primary-900: #3e2e22;
+    --color-primary-950: #241a13;
+
+    --color-secondary-50: #fafaf9;
+    --color-secondary-100: #f4f3f1;
+    --color-secondary-200: #e7e5e1;
+    --color-secondary-300: #d3d0ca;
+    --color-secondary-400: #a8a49c;
+    --color-secondary-500: #7d7970;
+    --color-secondary-600: #625f57;
+    --color-secondary-700: #4d4a44;
+    --color-secondary-800: #37352f;
+    --color-secondary-900: #2a2925;
+    --color-secondary-950: #1a1917;
+
+    --color-gray-50: #fbfbfa;
+    --color-gray-100: #f7f6f3;
+    --color-gray-200: #edece9;
+    --color-gray-300: #e0deda;
+    --color-gray-400: #b4b2ad;
+    --color-gray-500: #8f8d88;
+    --color-gray-600: #6f6d68;
+    --color-gray-700: #55534e;
+    --color-gray-800: #37352f;
+    --color-gray-900: #2a2925;
+    --color-gray-950: #1a1917;
+
+    --color-dark-50: #f5f5f4;
+    --color-dark-100: #e6e5e3;
+    --color-dark-200: #d2d1ce;
+    --color-dark-300: #a9a8a4;
+    --color-dark-400: #8a8985;
+    --color-dark-500: #6b6a66;
+    --color-dark-600: #3f3e3b;
+    --color-dark-700: #33322f;
+    --color-dark-800: #252524;
+    --color-dark-900: #191918;
+    --color-dark-950: #121211;
+}

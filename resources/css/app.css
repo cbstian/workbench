@@ -1,15 +1,25 @@
+/*
+ * Workbench — CSS entry point.
+ *
+ * Order matters: TallStackUI ships its own @theme, and our design tokens are
+ * imported afterwards so they override its palette. See docs/arquitectura/diseno.md.
+ */
 @import 'tailwindcss';
 @import '../../vendor/tallstackui/tallstackui/css/v4.css';
+
+/* Design system */
+@import './theme/palette.css';
+@import './theme/tokens.css';
+@import './base/base.css';
+
+/* Page-specific styles that cannot be expressed with utilities */
+@import './components/landing.css';
 
 @plugin '@tailwindcss/forms';
 
 @source '../../vendor/tallstackui/tallstackui/**/*.php';
 @source '../views';
+@source '../../app';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-}

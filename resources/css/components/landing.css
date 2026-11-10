@@ -1,0 +1,89 @@
+/*
+ * Landing page backdrop: a slow-drifting dot grid with two soft glows.
+ *
+ * Pure CSS (transform and opacity only, GPU friendly). Animations stop when
+ * the user prefers reduced motion.
+ */
+@layer components {
+    .landing-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .landing-backdrop__grid {
+        position: absolute;
+        inset: -28px;
+        background-image: radial-gradient(var(--wb-grid-dot) 1px, transparent 1px);
+        background-size: 28px 28px;
+        mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 20%, transparent 75%);
+        animation: landing-drift 40s linear infinite;
+    }
+
+    .landing-backdrop__glow {
+        position: absolute;
+        width: 55vmax;
+        height: 55vmax;
+        border-radius: 9999px;
+        filter: blur(90px);
+        will-change: transform;
+        animation: landing-float 26s ease-in-out infinite alternate;
+    }
+
+    .landing-backdrop__glow--warm {
+        top: -22vmax;
+        left: -18vmax;
+        background: var(--wb-glow-a);
+    }
+
+    .landing-backdrop__glow--neutral {
+        right: -20vmax;
+        bottom: -26vmax;
+        background: var(--wb-glow-b);
+        animation-duration: 34s;
+        animation-delay: -10s;
+    }
+
+    .landing-wordmark {
+        animation: landing-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes landing-drift {
+        to {
+            transform: translate3d(28px, 28px, 0);
+        }
+    }
+
+    @keyframes landing-float {
+        from {
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        to {
+            transform: translate3d(7vmax, 5vmax, 0) scale(1.12);
+        }
+    }
+
+    @keyframes landing-reveal {
+        from {
+            opacity: 0;
+            letter-spacing: 0.02em;
+            filter: blur(6px);
+        }
+
+        to {
+            opacity: 1;
+            filter: blur(0);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .landing-backdrop__grid,
+        .landing-backdrop__glow,
+        .landing-wordmark {
+            animation: none;
+        }
+    }
+}
