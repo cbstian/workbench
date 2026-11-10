@@ -14,9 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::view('/', 'landing')->name('home');
 
 Route::middleware('auth')->group(function (): void {
     Route::livewire('/dashboard', Dashboard::class)->name('dashboard');
