@@ -1,18 +1,28 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+{{--
+    Authenticated panel layout (Notion-like): fixed sidebar + slim topbar.
 
-        <title>{{ $title ?? config('app.name') }}</title>
+    Livewire full-page components render here automatically (config
+    livewire.component_layout = layouts::app); set the page title with the
+    #[Title('...')] attribute on the component class.
 
-        <tallstackui:script />
-        @livewireStyles
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body>
-        {{ $slot }}
+    Blade usage: <x-layouts::app title="Página">...</x-layouts::app>
+--}}
+@props([
+    'title' => null,
+])
 
-        @livewireScripts
-    </body>
-</html>
+<x-layouts::base :title="$title">
+    <div x-data="{ sidebarOpen: false }"
+         x-on:keydown.escape.window="sidebarOpen = false"
+         class="min-h-dvh">
+        <x-app.sidebar />
+
+        <div class="flex min-h-dvh flex-col md:pl-60">
+            <x-app.topbar :title="$title" />
+
+            <main class="mx-auto w-full max-w-5xl flex-1 px-5 pt-8 pb-16 sm:px-10 lg:px-16">
+                {{ $slot }}
+            </main>
+        </div>
+    </div>
+</x-layouts::base>
