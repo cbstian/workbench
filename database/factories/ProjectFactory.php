@@ -1,0 +1,70 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Project;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<Project>
+ */
+class ProjectFactory extends Factory
+{
+    /**
+     * Realistic Spanish project names, built from a kind of work and a subject.
+     *
+     * @var list<string>
+     */
+    private const KINDS = ['Rediseño', 'Migración', 'Portal', 'App', 'Integración', 'Campaña', 'Auditoría', 'Panel', 'API', 'Sitio', 'Automatización', 'Wiki'];
+
+    /**
+     * @var list<string>
+     */
+    private const SUBJECTS = ['de clientes', 'de facturación', 'ecommerce', 'interna', 'de reservas', 'de inventario', 'corporativa', 'de pagos', 'de RR. HH.', 'de soporte', 'de marketing', 'de logística', 'de ventas', 'de onboarding'];
+
+    /**
+     * @var list<string>
+     */
+    private const DESCRIPTIONS = [
+        'Levantamiento de requerimientos y prototipo navegable para validar con el cliente.',
+        'Mejoras de rendimiento, accesibilidad y SEO sobre la versión actual.',
+        'Conexión con el ERP para sincronizar productos, stock y precios.',
+        'Nueva arquitectura de información y sistema de diseño compartido.',
+        'Migración de datos históricos y retiro del sistema anterior.',
+        'Automatización de reportes semanales y alertas operativas.',
+        'Documentación técnica y funcional para el equipo de soporte.',
+        'Implementación por etapas con entregas quincenales.',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    private const ICONS = ['📁', '🚀', '🧭', '🛠️', '📊', '🧩', '📦', '🗂️', '💡', '🧪', '📝', '🌱'];
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->randomElement(self::KINDS).' '.fake()->randomElement(self::SUBJECTS),
+            'description' => fake()->optional(0.85)->randomElement(self::DESCRIPTIONS),
+            'icon' => fake()->randomElement(self::ICONS),
+            'is_visible_to_client' => fake()->boolean(35),
+            'created_at' => $createdAt = fake()->dateTimeBetween('-8 months'),
+            'updated_at' => fake()->dateTimeBetween($createdAt),
+        ];
+    }
+
+    /**
+     * Mark the project as visible to its client.
+     */
+    public function visibleToClient(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'is_visible_to_client' => true,
+        ]);
+    }
+}
