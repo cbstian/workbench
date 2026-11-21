@@ -1,0 +1,70 @@
+/*
+ * Rendered Markdown (wiki pages). Uses the semantic tokens only, so it follows
+ * light and dark themes. Apply with class="wb-prose".
+ */
+@layer components {
+    .wb-prose {
+        @apply text-[15px] leading-7 text-ink;
+    }
+
+    .wb-prose > * + * {
+        @apply mt-4;
+    }
+
+    .wb-prose h1 {
+        @apply mt-8 text-2xl font-bold tracking-tight;
+    }
+
+    .wb-prose h2 {
+        @apply mt-7 text-xl font-semibold tracking-tight;
+    }
+
+    .wb-prose h3 {
+        @apply mt-6 text-lg font-semibold;
+    }
+
+    .wb-prose a {
+        @apply underline underline-offset-4 hover:text-ink-muted;
+    }
+
+    .wb-prose ul {
+        @apply list-disc pl-6;
+    }
+
+    .wb-prose ol {
+        @apply list-decimal pl-6;
+    }
+
+    .wb-prose li + li {
+        @apply mt-1;
+    }
+
+    .wb-prose blockquote {
+        @apply border-l-2 border-line-strong pl-4 text-ink-muted;
+    }
+
+    .wb-prose code {
+        @apply rounded bg-hover px-1 py-0.5 font-mono text-[13px];
+    }
+
+    .wb-prose pre {
+        @apply overflow-x-auto rounded-lg border border-line bg-surface-muted p-4 text-[13px] leading-6;
+    }
+
+    .wb-prose pre code {
+        @apply bg-transparent p-0;
+    }
+
+    .wb-prose hr {
+        @apply border-line;
+    }
+
+    .wb-prose table {
+        @apply w-full border-collapse text-sm;
+    }
+
+    .wb-prose th,
+    .wb-prose td {
+        @apply border border-line px-3 py-1.5 text-left;
+    }
+}

@@ -8,6 +8,7 @@ use App\Models\Concerns\TracksDeleter;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * A wiki page. Without a project it belongs to the workspace wiki (RN-09).
@@ -76,6 +78,54 @@ class Page extends Model
     /**
      * @return BelongsTo<Workspace, $this>
      */
+    /**
+     * Whether the page is reachable: its project and every ancestor are
+     * active. Children of a trashed page stay hidden without being marked
+     * (docs/arquitectura/modelo-de-datos.md, 7).
+     */
+    public function isInActiveTree(): bool
+    {
+        if ($this->trashed() || ($this->project_id !== null && $this->project === null) || $this->workspace === null) {
+            return false;
+        }
+
+        $parentId = $this->parent_id;
+
+        while ($parentId !== null) {
+            $parent = self::withTrashed()->select(['id', 'parent_id', 'deleted_at'])->find($parentId);
+
+            if ($parent === null || $parent->trashed()) {
+                return false;
+            }
+
+            $parentId = $parent->parent_id;
+        }
+
+        return true;
+    }
+
+    /**
+     * Pages of one wiki: the workspace wiki when the project is null.
+     *
+     * @param  Builder<Page>  $query
+     */
+    public function scopeInWiki(Builder $query, Workspace $workspace, ?Project $project): void
+    {
+        $query->where('workspace_id', $workspace->id)
+            ->when($project, fn (Builder $query) => $query->where('project_id', $project->id), fn (Builder $query) => $query->whereNull('project_id'));
+    }
+
+    /**
+     * The body rendered from Markdown. Raw HTML is escaped and unsafe links
+     * dropped, so stored content cannot inject markup.
+     */
+    public function bodyHtml(): string
+    {
+        return filled($this->body)
+            ? Str::markdown($this->body, ['html_input' => 'escape', 'allow_unsafe_links' => false])
+            : '';
+    }
+
     public function workspace(): BelongsTo
     {
         return $this->belongsTo(Workspace::class);

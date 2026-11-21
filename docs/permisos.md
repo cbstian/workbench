@@ -56,6 +56,13 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 - Editar un comentario: solo su autor. Eliminar un comentario o adjunto: su autor, o el Super admin y los admins del Proyecto (`moderate`). Ambos van a la papelera.
 - Los adjuntos se guardan en el disco privado `local` (`workspaces/{uuid}/tasks/{uuid}/{uuid}`, hasta 10 MB) y se descargan por `attachments.show`, que exige poder ver la tarea; un adjunto en la papelera no se sirve.
 
+### Wiki (`PagePolicy`)
+
+- Wiki del Workspace (`/wiki`, páginas sin Proyecto): solo el Super admin (RN-24, A-18).
+- Wiki de un Proyecto (`/projects/{uuid}/wiki`): Super admin y equipo con `wiki.project` (admin y miembro). El usuario cliente no entra.
+- Quien entra a una wiki crea, edita, mueve, etiqueta y envía a la papelera sus Páginas, y sube o borra archivos.
+- Las subpáginas de una Página en la papelera quedan ocultas hasta restaurarla.
+
 ## Uso básico del paquete
 
 ```php

@@ -31,6 +31,10 @@
                 </span>
             @endif
 
+            @can('viewProjectWiki', [\App\Models\Page::class, $project])
+                <x-button icon="book-open" text="Wiki" sm outline :href="route('projects.wiki', $project)" wire:navigate />
+            @endcan
+
             @can('configure', $project)
                 <x-button icon="cog-6-tooth" text="Configurar" sm outline :href="route('projects.settings', $project)" wire:navigate />
             @endcan

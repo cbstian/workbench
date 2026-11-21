@@ -53,6 +53,7 @@ return [
                     'active' => 'projects.index',
                     'children' => 'navigation.project-links',
                 ],
+                ['label' => 'Wiki del espacio', 'route' => 'wiki.index', 'icon' => 'book-open', 'active' => 'wiki.index', 'can' => 'manage-workspace'],
             ],
         ],
     ],

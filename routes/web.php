@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PageFileController;
 use App\Http\Controllers\TaskAttachmentController;
 use App\Http\Middleware\EnsureCurrentWorkspace;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -11,6 +12,7 @@ use App\Livewire\Settings;
 use App\Livewire\Tasks;
 use App\Livewire\Trash;
 use App\Livewire\Users;
+use App\Livewire\Wiki;
 use App\Livewire\Workspaces;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +44,10 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
         Route::livewire('/projects/{project}/settings', Projects\Settings::class)->name('projects.settings');
         Route::livewire('/tasks/{task}', Tasks\Show::class)->name('tasks.show');
         Route::get('/attachments/{attachment}', [TaskAttachmentController::class, 'show'])->name('attachments.show');
+        Route::livewire('/wiki', Wiki\Index::class)->name('wiki.index');
+        Route::livewire('/projects/{project}/wiki', Wiki\Index::class)->name('projects.wiki');
+        Route::livewire('/pages/{page}', Wiki\PageShow::class)->name('pages.show');
+        Route::get('/page-files/{file}', [PageFileController::class, 'show'])->name('page-files.show');
         Route::livewire('/clients', Clients\Index::class)->name('clients.index');
         Route::livewire('/users', Users\Index::class)->name('users.index');
         Route::livewire('/trash', Trash\Index::class)->name('trash.index');

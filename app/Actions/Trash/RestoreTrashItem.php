@@ -2,9 +2,11 @@
 
 namespace App\Actions\Trash;
 
+use App\Enums\PageActivityEvent;
 use App\Enums\TaskActivityEvent;
 use App\Models\Client;
 use App\Models\Page;
+use App\Models\PageActivity;
 use App\Models\PageFile;
 use App\Models\Project;
 use App\Models\ProjectPriority;
@@ -90,6 +92,10 @@ class RestoreTrashItem
 
         if ($model instanceof Task) {
             TaskActivity::record($model, Auth::user(), TaskActivityEvent::Restored);
+        }
+
+        if ($model instanceof Page) {
+            PageActivity::record($model, Auth::user(), PageActivityEvent::Restored);
         }
 
         return $model;

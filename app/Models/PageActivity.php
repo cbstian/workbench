@@ -48,6 +48,51 @@ class PageActivity extends Model
         ];
     }
 
+    /**
+     * Append an entry to the history of a page.
+     *
+     * @param  array<string, array{old: mixed, new: mixed}>|null  $changes
+     * @param  array<string, mixed>|null  $metadata
+     */
+    public static function record(Page $page, ?User $user, PageActivityEvent $event, ?array $changes = null, ?array $metadata = null): self
+    {
+        return self::query()->create([
+            'page_id' => $page->id,
+            'user_id' => $user?->id,
+            'event' => $event,
+            'changes' => $changes,
+            'metadata' => $metadata,
+        ]);
+    }
+
+    /**
+     * The change in Spanish, for the page history (without the author).
+     */
+    public function description(): string
+    {
+        $changes = $this->getAttribute('changes') ?? [];
+        $metadata = $this->metadata ?? [];
+
+        return match ($this->event) {
+            PageActivityEvent::Created => 'creó la página',
+            PageActivityEvent::Updated => 'cambió '.collect(array_keys($changes))
+                ->map(fn (string $field): string => match ($field) {
+                    'title' => 'el título',
+                    'icon' => 'el icono',
+                    'is_visible_to_client' => 'la visibilidad para el cliente',
+                    default => $field,
+                })->join(', ', ' y '),
+            PageActivityEvent::BodyUpdated => 'editó el contenido',
+            PageActivityEvent::Moved => 'movió la página a «'.($metadata['parent_title'] ?? 'la raíz').'»',
+            PageActivityEvent::LabelAdded => 'agregó la etiqueta «'.($metadata['label_name'] ?? '—').'»',
+            PageActivityEvent::LabelRemoved => 'quitó la etiqueta «'.($metadata['label_name'] ?? '—').'»',
+            PageActivityEvent::FileAdded => 'subió «'.($metadata['file_name'] ?? 'un archivo').'»',
+            PageActivityEvent::FileDeleted => 'eliminó el archivo «'.($metadata['file_name'] ?? '—').'»',
+            PageActivityEvent::Deleted => 'envió la página a la papelera',
+            PageActivityEvent::Restored => 'restauró la página',
+        };
+    }
+
     protected function inheritedWorkspaceId(): ?int
     {
         return Page::withTrashed()->whereKey($this->page_id)->value('workspace_id');

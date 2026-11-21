@@ -2,6 +2,7 @@
 
 namespace App\Actions\Tasks;
 
+use App\Actions\Concerns\StoresPrivateFile;
 use App\Enums\TaskActivityEvent;
 use App\Models\Task;
 use App\Models\TaskActivity;
@@ -9,8 +10,6 @@ use App\Models\TaskAttachment;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * Stores a file on a task (F-07) on the private disk, at
@@ -19,25 +18,17 @@ use Illuminate\Support\Str;
  */
 class StoreTaskAttachment
 {
-    public const string DISK = 'local';
+    use StoresPrivateFile;
 
     public function handle(Task $task, User $actor, UploadedFile $file): TaskAttachment
     {
-        $uuid = (string) Str::uuid7();
-        $directory = "workspaces/{$task->project->workspace->uuid}/tasks/{$task->uuid}";
-        $path = Storage::disk(self::DISK)->putFileAs($directory, $file, $uuid);
+        $stored = $this->storePrivately($file, "workspaces/{$task->project->workspace->uuid}/tasks/{$task->uuid}");
 
-        return DB::transaction(function () use ($task, $actor, $file, $uuid, $path): TaskAttachment {
+        return DB::transaction(function () use ($task, $actor, $stored): TaskAttachment {
             $attachment = TaskAttachment::query()->create([
-                'uuid' => $uuid,
+                ...$stored,
                 'task_id' => $task->id,
                 'uploaded_by_id' => $actor->id,
-                'disk' => self::DISK,
-                'path' => $path,
-                'original_name' => mb_substr($file->getClientOriginalName(), 0, 255),
-                'mime_type' => $file->getMimeType(),
-                'size_bytes' => $file->getSize(),
-                'checksum_sha256' => hash_file('sha256', $file->getRealPath()),
             ]);
 
             TaskActivity::record($task, $actor, TaskActivityEvent::AttachmentAdded, metadata: [

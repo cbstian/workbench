@@ -70,6 +70,13 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 - La vista y los filtros se guardan por usuario y proyecto en `project_task_views` en cada cambio; el mes del calendario y el orden del listado no se recuerdan.
 - Kanban: arrastrar con `wire:sort` (grupo `tasks`, id de grupo = estado). `App\Actions\Tasks\MoveTask` cambia estado y posición (huecos de 1024, rebalanceo si los vecinos son contiguos) y registra `status_changed`. Si el usuario no puede editar la tarea, se avisa y no se mueve.
 
+### Wiki (E8)
+
+- `App\Livewire\Wiki\Index` sirve la wiki del Workspace y la de cada Proyecto (árbol, búsqueda full-text, filtro por etiqueta y «Nueva página»); `Wiki\PageShow` muestra, edita y mueve una Página, con subpáginas, archivos (`Wiki\PageFiles`) e historial.
+- El contenido se escribe con `<x-editor markdown>` de TallStackUI y se guarda como Markdown. Se muestra con `Page::bodyHtml()` (`Str::markdown` con HTML escapado y sin enlaces inseguros) dentro de `.wb-prose` (`resources/css/components/prose.css`).
+- El historial registra título, icono y visibilidad (`updated`), el cuerpo solo con su largo anterior y nuevo (`body_updated`, sin versiones), el padre (`moved`), etiquetas y archivos.
+- Las etiquetas de wiki son del Workspace; se crean desde el editor de la Página.
+
 ## 2. Anatomía de una página
 
 ```blade
