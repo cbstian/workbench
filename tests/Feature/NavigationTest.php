@@ -12,7 +12,7 @@ it('renders the sidebar links registered in the navigation config', function () 
 });
 
 it('hides items whose ability the user lacks', function () {
-    config()->set('navigation.groups.1.items.0.can', 'manage-everything');
+    config()->set('navigation.groups.2.items.0.can', 'manage-everything');
 
     $this->actingAs(User::factory()->create())
         ->get(route('dashboard'))
@@ -21,7 +21,7 @@ it('hides items whose ability the user lacks', function () {
 });
 
 it('skips items whose route does not exist', function () {
-    config()->set('navigation.groups.1.items', [
+    config()->set('navigation.groups.2.items', [
         ['label' => 'Módulo pendiente', 'route' => 'missing.index', 'icon' => 'cube'],
     ]);
 
@@ -37,4 +37,18 @@ it('renders labelled groups and items with children as collapsible', function ()
         ->assertOk()
         ->assertSee('wb-nav-group-espacio-de-trabajo', escape: false)
         ->assertSee('Expandir Proyectos', escape: false);
+});
+
+it('shows the administration group only to the super admin', function () {
+    [$owner, $workspace] = superAdminWithWorkspace();
+    $member = User::factory()->memberOf($workspace)->create();
+
+    $this->actingAs($owner)->get(route('dashboard'))
+        ->assertSeeText('Administración')
+        ->assertSee(route('users.index'), escape: false)
+        ->assertSee(route('roles.index'), escape: false);
+
+    $this->actingAs($member)->get(route('dashboard'))
+        ->assertDontSeeText('Administración')
+        ->assertDontSee(route('users.index'), escape: false);
 });

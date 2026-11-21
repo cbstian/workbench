@@ -3,11 +3,14 @@
 namespace App\Providers;
 
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Fortify;
 
 /**
@@ -25,8 +28,32 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
+        $this->authenticateActiveUsersOnly();
         $this->registerViews();
         $this->registerRateLimiters();
+    }
+
+    /**
+     * Check the credentials and reject deactivated users (A-09). Deleted users
+     * are excluded by soft deletes, so they fail as unknown credentials (A-10).
+     */
+    private function authenticateActiveUsersOnly(): void
+    {
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            $user = User::query()
+                ->whereRaw('lower(email) = ?', [Str::lower((string) $request->input(Fortify::username()))])
+                ->first();
+
+            if ($user === null || ! Hash::check((string) $request->input('password'), $user->password)) {
+                return null;
+            }
+
+            if ($user->deactivated_at !== null) {
+                throw ValidationException::withMessages([Fortify::username() => __('auth.deactivated')]);
+            }
+
+            return $user;
+        });
     }
 
     /**

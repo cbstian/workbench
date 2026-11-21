@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\Permission;
+use App\Enums\WorkspaceRole;
+use Closure;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -14,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -78,7 +82,78 @@ class User extends Authenticatable
      */
     public function isSuperAdmin(): bool
     {
-        return $this->ownedAccount()->exists();
+        return $this->ownedAccount !== null;
+    }
+
+    /**
+     * Whether the user is the super admin of the workspace (owner of its account).
+     */
+    public function ownsWorkspace(Workspace $workspace): bool
+    {
+        return $this->ownedAccount !== null && $workspace->account_id === $this->ownedAccount->id;
+    }
+
+    /**
+     * Whether the user may sign in: not deactivated nor deleted (A-09, A-10).
+     */
+    public function isActive(): bool
+    {
+        return $this->deactivated_at === null && ! $this->trashed();
+    }
+
+    /**
+     * Role of the user in the workspace, or null when they are not a member.
+     */
+    public function roleIn(Workspace $workspace): ?WorkspaceRole
+    {
+        $role = $this->workspaces()->whereKey($workspace->id)->first()?->pivot->role;
+
+        return $role instanceof WorkspaceRole ? $role : WorkspaceRole::tryFrom((string) $role);
+    }
+
+    /**
+     * Whether the user is assigned to the project team.
+     */
+    public function isOnTeamOf(Project $project): bool
+    {
+        return $this->projects()->whereKey($project->id)->exists();
+    }
+
+    /**
+     * Whether the user's workspace role grants the permission (spatie team = workspace).
+     */
+    public function hasWorkspacePermission(Workspace|int $workspace, Permission $permission): bool
+    {
+        return $this->withinWorkspaceTeam($workspace, function () use ($permission): bool {
+            try {
+                return $this->hasPermissionTo($permission->value);
+            } catch (PermissionDoesNotExist) {
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Run a callback with the spatie team set to the workspace, then restore it.
+     *
+     * @template TReturn
+     *
+     * @param  Closure(): TReturn  $callback
+     * @return TReturn
+     */
+    public function withinWorkspaceTeam(Workspace|int $workspace, Closure $callback): mixed
+    {
+        $previousTeamId = getPermissionsTeamId();
+
+        setPermissionsTeamId($workspace instanceof Workspace ? $workspace->id : $workspace);
+        $this->unsetRelation('roles')->unsetRelation('permissions');
+
+        try {
+            return $callback();
+        } finally {
+            setPermissionsTeamId($previousTeamId);
+            $this->unsetRelation('roles')->unsetRelation('permissions');
+        }
     }
 
     /**

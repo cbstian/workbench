@@ -23,4 +23,18 @@ enum StatusCategory: string
     {
         return in_array($this, [self::Completed, self::Cancelled], true);
     }
+
+    /**
+     * Spanish name shown when configuring a status.
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::Backlog => 'Backlog',
+            self::Unstarted => 'Sin empezar',
+            self::Started => 'En curso',
+            self::Completed => 'Completada',
+            self::Cancelled => 'Cancelada',
+        };
+    }
 }

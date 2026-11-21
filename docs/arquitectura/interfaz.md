@@ -57,6 +57,12 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 - `ProjectLinks` muestra hasta 30 proyectos ordenados por nombre y luego «Ver todos». Cuando existan permisos por proyecto, la consulta debe filtrar por los proyectos del usuario.
 - Un ítem cuya ruta aún no existe se omite (útil mientras se construye un módulo).
 
+### Espacio de trabajo actual
+
+- El usuario trabaja en un Workspace a la vez (F-02). `App\Support\CurrentWorkspace` lo guarda en la sesión y, si falta o ya no es visible, toma el primero visible (los propios primero).
+- Se cambia desde el selector del sidebar (`navigation.workspace-switcher`), que se refresca con el evento `workspaces-changed`.
+- Las páginas dentro de un Workspace usan el middleware `EnsureCurrentWorkspace` y el trait `App\Livewire\Concerns\WithCurrentWorkspace` (`$this->workspace`).
+
 ## 2. Anatomía de una página
 
 ```blade

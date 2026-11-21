@@ -2,15 +2,20 @@
 
 namespace App\Livewire;
 
+use App\Enums\WorkspaceRole;
 use App\Models\Project;
+use App\Models\Workspace;
+use App\Support\CurrentWorkspace;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /**
- * Panel home: greeting, a few project figures and the latest projects.
+ * Panel home: greeting, figures of the current workspace and the latest
+ * projects the user may open. A client user sees nothing yet (E10).
  *
  * Logic lives here; markup lives in resources/views/livewire/dashboard.blade.php.
  */
@@ -37,6 +42,41 @@ class Dashboard extends Component
         return "{$salutation}, {$firstName}";
     }
 
+    #[Computed]
+    public function workspace(): ?Workspace
+    {
+        return app(CurrentWorkspace::class)->get();
+    }
+
+    #[Computed]
+    public function isOwner(): bool
+    {
+        return $this->workspace !== null && auth()->user()->ownsWorkspace($this->workspace);
+    }
+
+    /**
+     * Whether the user is a client user of the workspace, who sees nothing for now (RN-04).
+     */
+    #[Computed]
+    public function isClientUser(): bool
+    {
+        return $this->workspace !== null && auth()->user()->roleIn($this->workspace) === WorkspaceRole::Client;
+    }
+
+    /**
+     * Projects of the current workspace the user may open.
+     *
+     * @return Builder<Project>
+     */
+    private function projects(): Builder
+    {
+        if ($this->workspace === null || $this->isClientUser) {
+            return Project::query()->whereRaw('false');
+        }
+
+        return Project::query()->visibleTo(auth()->user(), $this->workspace);
+    }
+
     /**
      * Headline figures shown as stat cards.
      *
@@ -45,23 +85,38 @@ class Dashboard extends Component
     #[Computed]
     public function stats(): array
     {
-        return [
+        $stats = [
             [
                 'label' => 'Proyectos',
-                'value' => Project::query()->count(),
-                'hint' => 'Activos en el espacio de trabajo',
+                'value' => $this->projects()->count(),
+                'hint' => $this->isOwner ? 'Activos en el espacio de trabajo' : 'Asignados a ti',
             ],
             [
                 'label' => 'Visibles para el cliente',
-                'value' => Project::query()->where('is_visible_to_client', true)->count(),
+                'value' => $this->projects()->where('is_visible_to_client', true)->count(),
                 'hint' => 'Marcados como visibles',
             ],
             [
                 'label' => 'Nuevos este mes',
-                'value' => Project::query()->where('created_at', '>=', now()->startOfMonth())->count(),
+                'value' => $this->projects()->where('created_at', '>=', now()->startOfMonth())->count(),
                 'hint' => now()->translatedFormat('F Y'),
             ],
         ];
+
+        if ($this->isOwner) {
+            $stats[] = [
+                'label' => 'Clientes',
+                'value' => $this->workspace->clients()->count(),
+                'hint' => 'En el espacio de trabajo',
+            ];
+            $stats[] = [
+                'label' => 'Usuarios',
+                'value' => $this->workspace->members()->count(),
+                'hint' => 'Admins, miembros y clientes',
+            ];
+        }
+
+        return $stats;
     }
 
     /**
@@ -74,7 +129,7 @@ class Dashboard extends Component
     {
         $months = collect(range(5, 0))->map(fn (int $monthsAgo) => now()->startOfMonth()->subMonths($monthsAgo));
 
-        $countsByMonth = Project::query()
+        $countsByMonth = $this->projects()
             ->where('created_at', '>=', $months->first())
             ->pluck('created_at')
             ->countBy(fn ($createdAt): string => $createdAt->format('Y-m'));
@@ -101,8 +156,8 @@ class Dashboard extends Component
     #[Computed]
     public function visibilityChart(): array
     {
-        $visible = Project::query()->where('is_visible_to_client', true)->count();
-        $hidden = Project::query()->where('is_visible_to_client', false)->count();
+        $visible = $this->projects()->where('is_visible_to_client', true)->count();
+        $hidden = $this->projects()->where('is_visible_to_client', false)->count();
 
         return [
             'chart' => ['type' => 'donut'],
@@ -121,7 +176,7 @@ class Dashboard extends Component
     #[Computed]
     public function recentProjects(): Collection
     {
-        return Project::query()->latest('updated_at')->limit(6)->get();
+        return $this->projects()->latest('updated_at')->limit(6)->get();
     }
 
     public function render(): View

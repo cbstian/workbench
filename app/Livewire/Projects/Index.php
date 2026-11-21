@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Projects;
 
+use App\Livewire\Concerns\WithCurrentWorkspace;
+use App\Livewire\Forms\ProjectForm;
+use App\Models\Client;
 use App\Models\Project;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
@@ -10,16 +13,30 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use TallStackUi\Traits\Interactions;
 
 /**
- * Projects list with search, sorting and pagination (TallStackUI table).
+ * Projects of the current workspace that the user may open (RN-21), with
+ * search, client filter, sorting and pagination (TallStackUI table).
+ *
+ * The super admin creates projects here and sends them to the trash (F-05, RN-13).
  *
  * Logic lives here; markup lives in resources/views/livewire/projects/index.blade.php.
  */
 #[Title('Proyectos')]
 class Index extends Component
 {
-    use WithPagination;
+    use Interactions, WithCurrentWorkspace, WithPagination;
+
+    public ProjectForm $form;
+
+    public bool $showForm = false;
+
+    /**
+     * UUID of the client to filter by.
+     */
+    #[Url(except: '')]
+    public string $client = '';
 
     /**
      * Columns the user may sort by, mapped to database columns.
@@ -58,6 +75,11 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatedClient(): void
+    {
+        $this->resetPage();
+    }
+
     /**
      * Keep the page size within the allowed values.
      */
@@ -80,9 +102,11 @@ class Index extends Component
     {
         return [
             ['index' => 'name', 'label' => 'Nombre'],
+            ['index' => 'client', 'label' => 'Cliente', 'sortable' => false],
             ['index' => 'description', 'label' => 'Descripción', 'sortable' => false],
-            ['index' => 'is_visible_to_client', 'label' => 'Cliente'],
+            ['index' => 'is_visible_to_client', 'label' => 'Visibilidad'],
             ['index' => 'updated_at', 'label' => 'Actualizado', 'align' => 'right'],
+            ['index' => 'action', 'label' => '', 'sortable' => false, 'align' => 'right'],
         ];
     }
 
@@ -101,11 +125,115 @@ class Index extends Component
         $direction = ($this->sort['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
         return Project::query()
+            ->visibleTo(auth()->user(), $this->workspace)
+            ->when($this->selectedClient, fn ($query, Client $client) => $query->where('client_id', $client->id))
+            ->with('client')
             ->search($this->search)
             ->orderBy($column, $direction)
             ->orderBy('id')
             ->paginate($this->quantity)
             ->withQueryString();
+    }
+
+    #[Computed]
+    public function selectedClient(): ?Client
+    {
+        return $this->client === '' ? null : $this->workspace->clients()->where('uuid', $this->client)->first();
+    }
+
+    /**
+     * @return list<array{label: string, value: string}>
+     */
+    #[Computed]
+    public function clientFilterOptions(): array
+    {
+        return $this->workspace->clients()->orderBy('name')->get(['uuid', 'name'])
+            ->map(fn (Client $client): array => ['label' => $client->name, 'value' => $client->uuid])
+            ->all();
+    }
+
+    /**
+     * @return list<array{label: string, value: int}>
+     */
+    #[Computed]
+    public function clientOptions(): array
+    {
+        return $this->workspace->clients()->orderBy('name')->get(['id', 'name'])
+            ->map(fn (Client $client): array => ['label' => $client->name, 'value' => $client->id])
+            ->all();
+    }
+
+    /**
+     * Admins and members of the workspace, for the team of a new project.
+     *
+     * @return list<array{label: string, value: int, description: string}>
+     */
+    #[Computed]
+    public function teamOptions(): array
+    {
+        return $this->workspace->members()
+            ->wherePivotIn('role', ['admin', 'member'])
+            ->orderBy('name')
+            ->get(['users.id', 'users.name'])
+            ->map(fn ($user): array => ['label' => $user->name, 'value' => $user->id, 'description' => $user->pivot->role->label()])
+            ->all();
+    }
+
+    #[Computed]
+    public function canCreate(): bool
+    {
+        return auth()->user()->can('create', [Project::class, $this->workspace]);
+    }
+
+    public function create(): void
+    {
+        $this->authorize('create', [Project::class, $this->workspace]);
+
+        $this->form->reset();
+        $this->form->resetValidation();
+        $this->form->setWorkspace($this->workspace);
+        $this->form->client_id = $this->selectedClient?->id;
+        $this->showForm = true;
+    }
+
+    public function save(): void
+    {
+        $this->authorize('create', [Project::class, $this->workspace]);
+
+        $project = $this->form->store(auth()->user());
+
+        $this->showForm = false;
+        $this->dispatch('projects-changed');
+        $this->toast()->success('Proyecto creado', 'Nació con los estados y prioridades por defecto.')->send();
+
+        $this->redirectRoute('projects.show', $project, navigate: true);
+    }
+
+    public function confirmDelete(string $uuid): void
+    {
+        $project = $this->findProject($uuid);
+
+        $this->dialog()
+            ->question("¿Enviar «{$project->name}» a la papelera?", 'Sus tareas y su wiki quedan ocultas hasta que lo restaures.')
+            ->confirm('Enviar a la papelera', 'delete', $uuid)
+            ->cancel('Cancelar')
+            ->send();
+    }
+
+    public function delete(string $uuid): void
+    {
+        $project = $this->findProject($uuid);
+        $this->authorize('delete', $project);
+
+        $project->delete();
+
+        $this->dispatch('projects-changed');
+        $this->toast()->success('Proyecto enviado a la papelera')->send();
+    }
+
+    private function findProject(string $uuid): Project
+    {
+        return Project::query()->visibleTo(auth()->user(), $this->workspace)->where('uuid', $uuid)->firstOrFail();
     }
 
     public function render(): View

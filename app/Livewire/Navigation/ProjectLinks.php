@@ -3,6 +3,7 @@
 namespace App\Livewire\Navigation;
 
 use App\Models\Project;
+use App\Support\CurrentWorkspace;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -37,20 +38,28 @@ class ProjectLinks extends Component
     }
 
     /**
-     * Projects ordered by name.
+     * Projects of the current workspace the user may open, ordered by name.
      *
      * @return Collection<int, Project>
      */
     #[Computed]
     public function projects(): Collection
     {
+        $workspace = app(CurrentWorkspace::class)->get();
+
+        if ($workspace === null) {
+            return new Collection;
+        }
+
         return Project::query()
+            ->visibleTo(auth()->user(), $workspace)
             ->orderBy('name')
             ->limit(self::LIMIT + 1)
             ->get(['id', 'uuid', 'name', 'icon']);
     }
 
     #[On('projects-changed')]
+    #[On('workspaces-changed')]
     public function refreshProjects(): void
     {
         unset($this->projects);

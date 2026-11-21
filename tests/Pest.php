@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Account;
+use App\Models\User;
+use App\Models\Workspace;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,7 +48,16 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * A super admin (account owner) with one workspace of their account.
+ *
+ * @param  array<string, mixed>  $ownerAttributes
+ * @return array{0: User, 1: Workspace}
+ */
+function superAdminWithWorkspace(array $ownerAttributes = []): array
 {
-    // ..
+    $owner = User::factory()->create($ownerAttributes);
+    $workspace = Workspace::factory()->for(Account::factory()->for($owner, 'owner'))->create();
+
+    return [$owner->fresh(), $workspace];
 }

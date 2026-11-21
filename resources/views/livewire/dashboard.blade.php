@@ -1,7 +1,18 @@
 <x-ui.page>
     <x-ui.page-header :title="$this->greeting" :description="now()->translatedFormat('l j \\d\\e F')" />
 
-    <section class="grid gap-3 sm:grid-cols-3" aria-label="Resumen">
+    @if ($this->workspace === null)
+        @can('manage-account')
+            <x-ui.empty-state icon="squares-2x2" title="Crea tu primer espacio de trabajo" description="Dentro de él agregarás clientes, proyectos y los usuarios que trabajan en ellos.">
+                <x-button icon="plus" text="Nuevo espacio" sm :href="route('workspaces.index')" wire:navigate />
+            </x-ui.empty-state>
+        @else
+            <x-ui.empty-state icon="squares-2x2" title="Aún no tienes espacios de trabajo" description="Cuando te inviten a uno, aparecerá aquí." />
+        @endcan
+    @elseif ($this->isClientUser)
+        <x-ui.empty-state icon="eye-slash" title="Por ahora no hay contenido para ti" description="Tu acceso está listo. Cuando se defina qué pueden ver los clientes, lo encontrarás aquí." />
+    @else
+    <section @class(['grid gap-3 sm:grid-cols-3', 'lg:grid-cols-5' => count($this->stats) > 3]) aria-label="Resumen">
         @foreach ($this->stats as $stat)
             <x-ui.stat :label="$stat['label']" :value="$stat['value']" :hint="$stat['hint']" />
         @endforeach
@@ -49,4 +60,5 @@
             </ul>
         @endif
     </x-ui.section>
+    @endif
 </x-ui.page>

@@ -36,6 +36,19 @@ class UserFactory extends Factory
     }
 
     /**
+     * Configure the factory.
+     *
+     * The database fills `uuid` (uuidv7()); load it so tests can address users by it.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            $user->setAttribute('uuid', User::withTrashed()->whereKey($user->id)->value('uuid'));
+            $user->syncOriginalAttribute('uuid');
+        });
+    }
+
+    /**
      * Indicate that the model's email address should be unverified.
      */
     public function unverified(): static

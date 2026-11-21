@@ -38,6 +38,7 @@ class Account extends Model
             ]);
 
             $owner->forceFill(['account_id' => $account->id])->save();
+            $owner->setRelation('ownedAccount', $account);
 
             return $account;
         });

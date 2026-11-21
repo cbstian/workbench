@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * A client inside a workspace. Projects are optional (RN-12).
@@ -33,6 +34,14 @@ class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
     use HasFactory, HasPublicUuid, SoftDeletes, TracksDeleter;
+
+    /**
+     * Public URL of the logo, or null when the client has none.
+     */
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path !== null ? Storage::disk('public')->url($this->logo_path) : null;
+    }
 
     /**
      * @return BelongsTo<Workspace, $this>

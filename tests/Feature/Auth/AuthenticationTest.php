@@ -53,3 +53,34 @@ it('does not offer registration or two-factor authentication', function () {
     $this->post('/register')->assertNotFound();
     $this->get('/two-factor-challenge')->assertNotFound();
 });
+
+it('rejects a deactivated user and keeps their data (A-09)', function () {
+    $user = User::factory()->deactivated()->create();
+
+    $this->from(route('login'))
+        ->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
+        ->assertSessionHasErrors(['email' => __('auth.deactivated')]);
+
+    $this->assertGuest();
+    expect($user->fresh())->not->toBeNull();
+});
+
+it('rejects a deleted user (A-10)', function () {
+    $user = User::factory()->create();
+    $user->delete();
+
+    $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+it('signs out a user deactivated during their session', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $user->forceFill(['deactivated_at' => now()])->save();
+
+    $this->get(route('dashboard'))->assertRedirect(route('login'));
+
+    $this->assertGuest();
+});

@@ -39,6 +39,8 @@
             </button>
         </div>
 
+        <livewire:navigation.workspace-switcher />
+
         <nav class="scrollbar-subtle flex-1 space-y-5 overflow-y-auto py-2 pr-0.5 pl-2">
             @foreach ($groups as $group)
                 <x-app.nav-group :label="$group['label'] ?? null" :items="$group['items'] ?? []" />

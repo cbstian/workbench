@@ -2,7 +2,9 @@
 
 namespace App\Models\Concerns;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -32,5 +34,15 @@ trait TracksDeleter
         static::restoring(function (Model $model): void {
             $model->setAttribute('deleted_by_id', null);
         });
+    }
+
+    /**
+     * User who sent the model to the trash.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function deleter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by_id');
     }
 }

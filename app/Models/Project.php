@@ -160,6 +160,22 @@ class Project extends Model
     }
 
     /**
+     * Projects of the workspace the user may open: all of them for its super
+     * admin, only the assigned ones for admins and members (RN-21), none for
+     * client users (RN-04).
+     *
+     * @param  Builder<Project>  $query
+     */
+    public function scopeVisibleTo(Builder $query, User $user, Workspace $workspace): void
+    {
+        $query->where('projects.workspace_id', $workspace->id);
+
+        if (! $user->ownsWorkspace($workspace)) {
+            $query->whereHas('members', fn (Builder $query) => $query->whereKey($user->id));
+        }
+    }
+
+    /**
      * Filter projects whose name or description contains the given term.
      *
      * @param  Builder<Project>  $query

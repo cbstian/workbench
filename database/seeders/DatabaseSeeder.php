@@ -2,23 +2,26 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Authorization\SyncRolePermissions;
 use App\Models\Account;
 use App\Models\User;
 use App\Models\Workspace;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database with a demo user and demo data.
+     * Seed the application's database with a demo super admin and demo data.
+     *
+     * Model events stay on: workspace memberships sync the spatie roles.
      *
      * Demo credentials (local only): demo@workbench.test / password
+     * (WorkspaceSeeder adds admin, members and a client user, same password).
      */
     public function run(): void
     {
+        app(SyncRolePermissions::class)->handle();
+
         $owner = User::query()
             ->firstOrNew(['email' => 'demo@workbench.test']);
 
@@ -40,6 +43,6 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        $this->call(ProjectSeeder::class);
+        $this->call([ProjectSeeder::class, WorkspaceSeeder::class]);
     }
 }

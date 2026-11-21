@@ -6,10 +6,11 @@ use App\Models\User;
 use Livewire\Livewire;
 
 it('lists projects alphabetically in the sidebar', function () {
-    $beta = Project::factory()->create(['name' => 'Beta']);
-    Project::factory()->create(['name' => 'Alfa']);
+    [$owner, $workspace] = superAdminWithWorkspace();
+    $beta = Project::factory()->for($workspace)->create(['name' => 'Beta']);
+    Project::factory()->for($workspace)->create(['name' => 'Alfa']);
 
-    $this->actingAs(User::factory()->create())
+    $this->actingAs($owner)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSeeLivewire(ProjectLinks::class)
@@ -18,26 +19,42 @@ it('lists projects alphabetically in the sidebar', function () {
 });
 
 it('marks the open project as active', function () {
-    $project = Project::factory()->create(['name' => 'Portal']);
+    [$owner, $workspace] = superAdminWithWorkspace();
+    $project = Project::factory()->for($workspace)->create(['name' => 'Portal']);
 
-    $this->actingAs(User::factory()->create())
+    $this->actingAs($owner)
         ->get(route('projects.show', $project))
         ->assertOk()
         ->assertSee('aria-current="page"', escape: false);
 });
 
 it('caps the list and links to the full index', function () {
-    Project::factory()->count(ProjectLinks::LIMIT + 1)->create();
+    [$owner, $workspace] = superAdminWithWorkspace();
+    Project::factory()->for($workspace)->count(ProjectLinks::LIMIT + 1)->create();
 
-    Livewire::actingAs(User::factory()->create())
+    Livewire::actingAs($owner)
         ->test(ProjectLinks::class)
         ->assertSeeText('Ver todos');
 });
 
 it('refreshes when projects change', function () {
-    $component = Livewire::actingAs(User::factory()->create())->test(ProjectLinks::class);
+    [$owner, $workspace] = superAdminWithWorkspace();
+    $component = Livewire::actingAs($owner)->test(ProjectLinks::class);
 
-    Project::factory()->create(['name' => 'Recién creado']);
+    Project::factory()->for($workspace)->create(['name' => 'Recién creado']);
 
     $component->dispatch('projects-changed')->assertSeeText('Recién creado');
+});
+
+it('lists only the projects a member is assigned to', function () {
+    [, $workspace] = superAdminWithWorkspace();
+    $member = User::factory()->memberOf($workspace)->create();
+    $assigned = Project::factory()->for($workspace)->create(['name' => 'Asignado']);
+    Project::factory()->for($workspace)->create(['name' => 'Ajeno']);
+    $assigned->members()->attach($member);
+
+    Livewire::actingAs($member)
+        ->test(ProjectLinks::class)
+        ->assertSeeText('Asignado')
+        ->assertDontSeeText('Ajeno');
 });
