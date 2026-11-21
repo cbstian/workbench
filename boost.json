@@ -21,6 +21,7 @@
         "livewire-development",
         "tailwindcss-development",
         "laravel-permission-development",
-        "tallstackui-development"
+        "tallstackui-development",
+        "apexcharts"
     ]
 }

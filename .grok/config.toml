@@ -1,3 +1,13 @@
 [mcp_servers.laravel-boost]
 command = "php"
 args = ["artisan", "boost:mcp"]
+
+[mcp_servers.tallstackui]
+url = "https://tallstackui.com/mcp/tallstackui"
+
+[mcp_servers.apexcharts]
+command = "npx"
+args = ["-y", "apexcharts-mcp"]
+
+[mcp_servers.apexcharts.env]
+APEXCHARTS_MCP_PRODUCTS = "charts,gantt,tree,sankey,grid,stock"

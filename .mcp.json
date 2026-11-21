@@ -6,6 +6,20 @@
                 "artisan",
                 "boost:mcp"
             ]
+        },
+        "tallstackui": {
+            "type": "http",
+            "url": "https://tallstackui.com/mcp/tallstackui"
+        },
+        "apexcharts": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "apexcharts-mcp"
+            ],
+            "env": {
+                "APEXCHARTS_MCP_PRODUCTS": "charts,gantt,tree,sankey,grid,stock"
+            }
         }
     }
 }
