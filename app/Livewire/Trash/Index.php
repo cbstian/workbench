@@ -7,6 +7,7 @@ use App\Livewire\Concerns\WithCurrentWorkspace;
 use App\Models\TrashItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -17,6 +18,9 @@ use TallStackUi\Traits\Interactions;
 /**
  * Trash of the current workspace (E9, F-10, RN-19): everything deleted in it,
  * most recent first, with restore. It cannot be emptied (A-19).
+ *
+ * An admin sees only what was deleted inside their projects; clients, wiki
+ * labels and projects themselves stay with the super admin.
  */
 #[Title('Papelera')]
 class Index extends Component
@@ -42,6 +46,13 @@ class Index extends Component
         'wiki_label' => 'Etiqueta de wiki',
     ];
 
+    /**
+     * Types an admin never sees: they belong to the workspace, not to a project.
+     *
+     * @var list<string>
+     */
+    private const array OWNER_ONLY_TYPES = ['workspace', 'client', 'project', 'wiki_label'];
+
     #[Url(except: '')]
     public string $type = '';
 
@@ -61,9 +72,7 @@ class Index extends Component
     #[Computed]
     public function items(): LengthAwarePaginator
     {
-        return TrashItem::query()
-            ->inWorkspace($this->workspace)
-            ->where('type', '!=', 'workspace')
+        return $this->visibleItems()
             ->when(array_key_exists($this->type, self::TYPE_LABELS), fn ($query) => $query->where('type', $this->type))
             ->with('deleter')
             ->paginate(25);
@@ -88,15 +97,16 @@ class Index extends Component
     #[Computed]
     public function typeOptions(): array
     {
-        return collect(self::TYPE_LABELS)->map(fn (string $label, string $value): array => ['label' => $label, 'value' => $value])->values()->all();
+        return collect(self::TYPE_LABELS)
+            ->when(! $this->isOwner, fn ($labels) => $labels->except(self::OWNER_ONLY_TYPES))
+            ->map(fn (string $label, string $value): array => ['label' => $label, 'value' => $value])->values()->all();
     }
 
     public function restore(string $type, int $id): void
     {
         $this->authorize('viewTrash', $this->workspace);
 
-        $item = TrashItem::query()->inWorkspace($this->workspace)->where('type', $type)->where('id', $id)->firstOrFail();
-        abort_if($item->type === 'workspace', 404);
+        $item = $this->visibleItems()->where('type', $type)->where('id', $id)->firstOrFail();
 
         $restored = app(RestoreTrashItem::class)->handle($item);
 
@@ -112,6 +122,29 @@ class Index extends Component
         )->send();
 
         unset($this->items, $this->projectNames);
+    }
+
+    #[Computed]
+    public function isOwner(): bool
+    {
+        return auth()->user()->ownsWorkspace($this->workspace);
+    }
+
+    /**
+     * Trash rows the user may see and restore.
+     *
+     * @return Builder<TrashItem>
+     */
+    private function visibleItems(): Builder
+    {
+        $query = TrashItem::query()->inWorkspace($this->workspace)->where('type', '!=', 'workspace');
+
+        if (! $this->isOwner) {
+            $query->whereNotIn('type', self::OWNER_ONLY_TYPES)
+                ->whereIn('project_id', auth()->user()->projectIdsIn($this->workspace));
+        }
+
+        return $query;
     }
 
     public function render(): View

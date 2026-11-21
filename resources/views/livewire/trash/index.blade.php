@@ -1,6 +1,8 @@
 <x-ui.page>
     <x-ui.page-header title="Papelera"
-                      :description="'Todo lo que se borró en '.$this->workspace->name.'. Puedes restaurarlo; por ahora la papelera no se vacía.'" />
+                      :description="$this->isOwner
+                          ? 'Todo lo que se borró en '.$this->workspace->name.'. Puedes restaurarlo; por ahora la papelera no se vacía.'
+                          : 'Lo que se borró en tus proyectos. Puedes restaurarlo; por ahora la papelera no se vacía.'" />
 
     <div class="max-w-xs">
         <x-select.styled wire:model.live="type" :options="$this->typeOptions" placeholder="Todos los tipos" />

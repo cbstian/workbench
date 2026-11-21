@@ -6,8 +6,11 @@ use App\Enums\WorkspaceRole;
 use App\Livewire\Concerns\WithCurrentWorkspace;
 use App\Livewire\Forms\WorkspaceUserForm;
 use App\Models\User;
+use App\Models\Workspace;
+use App\Models\WorkspaceMember;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -20,6 +23,9 @@ use TallStackUi\Traits\Interactions;
  * The super admin creates admins, members and client users, adds users of
  * the account, changes roles and access, removes users from the workspace,
  * and deactivates, deletes or restores the users of the account (RN-14).
+ *
+ * An admin sees the teams of their projects and only creates members with
+ * access to those projects (RN-21, A-14, A-21).
  */
 #[Title('Usuarios')]
 class Index extends Component
@@ -38,7 +44,42 @@ class Index extends Component
 
     public function mount(): void
     {
-        $this->authorize('manageMembers', $this->workspace);
+        $this->authorize('viewMembers', $this->workspace);
+    }
+
+    /**
+     * Whether the signed-in user is the super admin of the workspace.
+     */
+    #[Computed]
+    public function isOwner(): bool
+    {
+        return auth()->user()->ownsWorkspace($this->workspace);
+    }
+
+    /**
+     * Ids of the admin's projects; null for the super admin, who sees everything.
+     *
+     * @return list<int>|null
+     */
+    #[Computed]
+    public function scopedProjectIds(): ?array
+    {
+        return $this->isOwner ? null : auth()->user()->projectIdsIn($this->workspace);
+    }
+
+    /**
+     * Members the user may see: all for the super admin, the teams of their
+     * projects for an admin.
+     *
+     * @return BelongsToMany<User, Workspace, WorkspaceMember>
+     */
+    private function visibleMembers(): BelongsToMany
+    {
+        return $this->workspace->members()
+            ->when($this->scopedProjectIds !== null, fn ($query) => $query->whereHas(
+                'projects',
+                fn ($query) => $query->whereIn('projects.id', $this->scopedProjectIds),
+            ));
     }
 
     /**
@@ -52,7 +93,7 @@ class Index extends Component
         $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $this->search).'%';
         $workspaceId = $this->workspace->id;
 
-        return $this->workspace->members()
+        return $this->visibleMembers()
             ->when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query->whereLike('users.name', $like)->orWhereLike('users.email', $like)))
             ->when(WorkspaceRole::tryFrom($this->role), fn ($query, WorkspaceRole $role) => $query->wherePivot('role', $role->value))
             ->with(['clients' => fn ($query) => $query->where('clients.workspace_id', $workspaceId)->orderBy('name')])
@@ -69,7 +110,7 @@ class Index extends Component
     #[Computed]
     public function roleCounts(): array
     {
-        return $this->workspace->members()
+        return $this->visibleMembers()
             ->toBase()
             ->selectRaw('workspace_user.role, count(*) as total')
             ->groupBy('workspace_user.role')
@@ -86,6 +127,10 @@ class Index extends Component
     #[Computed]
     public function deletedUsers(): Collection
     {
+        if (! $this->isOwner) {
+            return new Collection;
+        }
+
         return User::onlyTrashed()
             ->where('account_id', $this->workspace->account_id)
             ->latest('deleted_at')
@@ -109,7 +154,10 @@ class Index extends Component
     #[Computed]
     public function projectOptions(): array
     {
-        return $this->workspace->projects()->orderBy('name')->get(['id', 'name', 'icon'])
+        return $this->workspace->projects()
+            ->when($this->scopedProjectIds !== null, fn ($query) => $query->whereKey($this->scopedProjectIds))
+            ->orderBy('name')
+            ->get(['id', 'name', 'icon'])
             ->map(fn ($project): array => ['label' => trim(($project->icon ?? '').' '.$project->name), 'value' => $project->id])
             ->all();
     }
@@ -131,6 +179,8 @@ class Index extends Component
 
     public function create(): void
     {
+        $this->authorize('createMembers', $this->workspace);
+
         $this->form->start(WorkspaceUserForm::MODE_CREATE, $this->workspace);
         $this->form->resetValidation();
         $this->showForm = true;
@@ -138,6 +188,8 @@ class Index extends Component
 
     public function addExisting(): void
     {
+        $this->authorize('manageMembers', $this->workspace);
+
         $this->form->start(WorkspaceUserForm::MODE_EXISTING, $this->workspace);
         $this->form->resetValidation();
         unset($this->addableUserOptions);
@@ -156,7 +208,10 @@ class Index extends Component
 
     public function save(): void
     {
-        $this->authorize('manageMembers', $this->workspace);
+        $this->authorize(
+            $this->form->mode === WorkspaceUserForm::MODE_CREATE ? 'createMembers' : 'manageMembers',
+            $this->workspace,
+        );
 
         if ($this->form->mode === WorkspaceUserForm::MODE_EDIT) {
             $this->authorize('update', $this->form->user);
@@ -257,7 +312,7 @@ class Index extends Component
 
     private function refreshLists(): void
     {
-        unset($this->members, $this->roleCounts, $this->deletedUsers);
+        unset($this->members, $this->roleCounts, $this->deletedUsers, $this->scopedProjectIds);
     }
 
     public function render(): View

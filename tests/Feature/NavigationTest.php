@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\WorkspaceRole;
 use App\Models\User;
 
 it('renders the sidebar links registered in the navigation config', function () {
@@ -51,4 +52,16 @@ it('shows the administration group only to the super admin', function () {
     $this->actingAs($member)->get(route('dashboard'))
         ->assertDontSeeText('Administración')
         ->assertDontSee(route('users.index'), escape: false);
+});
+
+it('shows an admin the users and trash of their projects, nothing else', function () {
+    [, $workspace] = superAdminWithWorkspace();
+    $admin = User::factory()->memberOf($workspace, WorkspaceRole::Admin)->create();
+
+    $this->actingAs($admin)->get(route('dashboard'))
+        ->assertSee(route('users.index'), escape: false)
+        ->assertSee(route('trash.index'), escape: false)
+        ->assertDontSee(route('clients.index'), escape: false)
+        ->assertDontSee(route('workspaces.index'), escape: false)
+        ->assertDontSee(route('roles.index'), escape: false);
 });

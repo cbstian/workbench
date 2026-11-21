@@ -37,8 +37,8 @@ return [
             'label' => 'Administración',
             'items' => [
                 ['label' => 'Clientes', 'route' => 'clients.index', 'icon' => 'building-office', 'can' => 'manage-workspace'],
-                ['label' => 'Usuarios', 'route' => 'users.index', 'icon' => 'users', 'can' => 'manage-workspace'],
-                ['label' => 'Papelera', 'route' => 'trash.index', 'icon' => 'trash', 'can' => 'manage-workspace'],
+                ['label' => 'Usuarios', 'route' => 'users.index', 'icon' => 'users', 'can' => 'view-members'],
+                ['label' => 'Papelera', 'route' => 'trash.index', 'icon' => 'trash', 'can' => 'view-trash'],
                 ['label' => 'Espacios de trabajo', 'route' => 'workspaces.index', 'icon' => 'squares-2x2', 'can' => 'manage-account'],
                 ['label' => 'Roles y permisos', 'route' => 'roles.index', 'icon' => 'shield-check', 'can' => 'manage-account'],
             ],

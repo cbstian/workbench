@@ -30,7 +30,7 @@ php artisan permission:cache-reset
 | Rol por Workspace | `workspace_user.role` → `model_has_roles.team_id` | `workspace_user.role` es la fuente de verdad (D-04). `WorkspaceMember` (pivote) sincroniza el rol de spatie del team al crear, cambiar o quitar la membresía |
 | Chequeo | `User::hasWorkspacePermission($workspace, Permission::X)` | Fija el team del Workspace, consulta a spatie y restaura el team anterior |
 | Policies | `app/Policies` | `WorkspacePolicy`, `ClientPolicy`, `ProjectPolicy`, `UserPolicy`: Super admin por dueño de la Cuenta; admin/miembro por equipo del Proyecto + permiso del rol |
-| Habilidades del menú | `AppServiceProvider` | `manage-account` (es Super admin) y `manage-workspace` (dueño del Workspace actual), usadas en `config/navigation.php` |
+| Habilidades del menú | `AppServiceProvider` | `manage-account` (es Super admin), `manage-workspace` (dueño del Workspace actual), `view-members` y `view-trash` (Super admin, o admin con `members.create` / `trash.project`), usadas en `config/navigation.php` |
 
 Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, agregar usuarios existentes, desactivar o eliminar usuarios, wiki del Workspace) nunca se otorga a un rol: se lista en `Permission::SUPER_ADMIN_ONLY` y lo aplican las Policies. La página **Roles y permisos** (`/roles`) muestra la matriz leída desde spatie.
 
@@ -39,6 +39,12 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 | `admin` | todos los del catálogo |
 | `member` | `tasks.view`, `tasks.create`, `tasks.update-assigned`, `wiki.project` |
 | `client` | ninguno (por ahora accede sin ver nada) |
+
+### Perfil Admin
+
+- Ve solo los Proyectos de su equipo (`Project::scopeVisibleTo`) y los configura (`projects.update`, `projects.configure`); no crea ni borra Proyectos ni maneja su equipo.
+- **Usuarios** (`members.create`): ve los equipos de sus Proyectos y crea miembros nuevos con acceso a uno o más de sus Proyectos. `WorkspaceUserForm` fuerza el rol `member` y valida que los Proyectos sean suyos; no agrega usuarios existentes ni edita, desactiva o elimina usuarios (A-14, A-21).
+- **Papelera** (`trash.project`): ve y restaura lo borrado dentro de sus Proyectos; Clientes, Proyectos y etiquetas de wiki quedan para el Super admin.
 
 ## Uso básico del paquete
 

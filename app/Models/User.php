@@ -120,6 +120,20 @@ class User extends Authenticatable
     }
 
     /**
+     * Ids of the active projects of the workspace whose team includes the user.
+     *
+     * @return list<int>
+     */
+    public function projectIdsIn(Workspace $workspace): array
+    {
+        return $this->projects()
+            ->where('projects.workspace_id', $workspace->id)
+            ->pluck('projects.id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+    }
+
+    /**
      * Whether the user's workspace role grants the permission (spatie team = workspace).
      */
     public function hasWorkspacePermission(Workspace|int $workspace, Permission $permission): bool

@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Support\CurrentWorkspace;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 
@@ -169,9 +170,103 @@ it('cannot manage users of another account', function () {
     Livewire::actingAs($owner)->test(Index::class)->call('toggleActive', $foreign->uuid)->assertForbidden();
 });
 
-it('forbids anyone but the super admin (A-14)', function (WorkspaceRole $role) {
+it('forbids members and client users (A-14)', function (WorkspaceRole $role) {
     [, $workspace] = superAdminWithWorkspace();
     $user = User::factory()->memberOf($workspace, $role)->create();
 
     $this->actingAs($user)->get(route('users.index'))->assertForbidden();
-})->with(WorkspaceRole::cases());
+})->with([WorkspaceRole::Member, WorkspaceRole::Client]);
+
+/**
+ * An admin on one project of the workspace, plus a project they are not on.
+ *
+ * @return array{0: User, 1: Workspace, 2: Project, 3: Project}
+ */
+function adminWithProjects(): array
+{
+    [, $workspace] = superAdminWithWorkspace();
+    $admin = User::factory()->memberOf($workspace, WorkspaceRole::Admin)->create(['account_id' => $workspace->account_id]);
+    $own = Project::factory()->for($workspace)->create(['name' => 'Proyecto propio']);
+    $foreign = Project::factory()->for($workspace)->create(['name' => 'Proyecto ajeno']);
+    $own->members()->attach($admin);
+
+    return [$admin, $workspace, $own, $foreign];
+}
+
+it('shows an admin only the teams of their projects', function () {
+    [$admin, $workspace, $own, $foreign] = adminWithProjects();
+    $teammate = User::factory()->memberOf($workspace)->create(['name' => 'Compañera']);
+    $outsider = User::factory()->memberOf($workspace)->create(['name' => 'Otra persona']);
+    $own->members()->attach($teammate);
+    $foreign->members()->attach($outsider);
+
+    $this->actingAs($admin)
+        ->get(route('users.index'))
+        ->assertOk()
+        ->assertSeeText('Compañera')
+        ->assertDontSeeText('Otra persona')
+        ->assertSeeText('Nuevo miembro')
+        ->assertDontSeeText('Agregar existente')
+        ->assertDontSeeText('Desactivar acceso');
+});
+
+it('lets an admin create a member with access to their projects (RN-21)', function () {
+    [$admin, $workspace, $own] = adminWithProjects();
+
+    Livewire::actingAs($admin)
+        ->test(Index::class)
+        ->call('create')
+        ->set('form.name', 'Nuevo Miembro')
+        ->set('form.email', 'nuevo@example.com')
+        ->set('form.password', 'secreto123')
+        ->set('form.project_ids', [$own->id])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $member = User::query()->where('email', 'nuevo@example.com')->sole();
+
+    expect($member->roleIn($workspace))->toBe(WorkspaceRole::Member)
+        ->and($member->account_id)->toBe($workspace->account_id)
+        ->and($member->projectIdsIn($workspace))->toBe([$own->id])
+        ->and(DB::table('workspace_user')->where('user_id', $member->id)->value('created_by_id'))->toBe($admin->id);
+});
+
+it('keeps an admin from creating anything but members of their projects (A-14)', function () {
+    [$admin, , , $foreign] = adminWithProjects();
+
+    Livewire::actingAs($admin)
+        ->test(Index::class)
+        ->call('create')
+        ->set('form.name', 'Intento')
+        ->set('form.email', 'intento@example.com')
+        ->set('form.password', 'secreto123')
+        ->set('form.role', 'admin')
+        ->set('form.project_ids', [$foreign->id])
+        ->call('save')
+        ->assertHasErrors(['form.role' => 'in', 'form.project_ids.0' => 'in']);
+
+    Livewire::actingAs($admin)
+        ->test(Index::class)
+        ->call('create')
+        ->set('form.name', 'Intento')
+        ->set('form.email', 'intento@example.com')
+        ->set('form.password', 'secreto123')
+        ->call('save')
+        ->assertHasErrors(['form.project_ids' => 'required']);
+
+    expect(User::query()->where('email', 'intento@example.com')->exists())->toBeFalse();
+});
+
+it('keeps an admin from adding existing users or managing accounts (A-21)', function () {
+    [$admin, $workspace, $own] = adminWithProjects();
+    $teammate = User::factory()->memberOf($workspace)->create(['account_id' => $workspace->account_id]);
+    $own->members()->attach($teammate);
+
+    Livewire::actingAs($admin)->test(Index::class)->call('addExisting')->assertForbidden();
+
+    foreach (['edit', 'toggleActive', 'remove', 'delete'] as $method) {
+        Livewire::actingAs($admin)->test(Index::class)->call($method, $teammate->uuid)->assertForbidden();
+    }
+
+    expect($teammate->fresh()->deactivated_at)->toBeNull();
+});

@@ -1,9 +1,15 @@
 <x-ui.page>
     <x-ui.page-header title="Usuarios"
-                      :description="'Admins, miembros y usuarios cliente de '.$this->workspace->name.'.'">
+                      :description="$this->isOwner
+                          ? 'Admins, miembros y usuarios cliente de '.$this->workspace->name.'.'
+                          : 'Equipos de tus proyectos. Puedes crear miembros con acceso a ellos.'">
         <x-slot:actions>
-            <x-button icon="user-plus" text="Agregar existente" sm outline wire:click="addExisting" />
-            <x-button icon="plus" text="Nuevo usuario" sm wire:click="create" />
+            @if ($this->isOwner)
+                <x-button icon="user-plus" text="Agregar existente" sm outline wire:click="addExisting" />
+                <x-button icon="plus" text="Nuevo usuario" sm wire:click="create" />
+            @else
+                <x-button icon="plus" text="Nuevo miembro" sm wire:click="create" />
+            @endif
         </x-slot:actions>
     </x-ui.page-header>
 
@@ -13,7 +19,7 @@
         </div>
 
         <div class="flex flex-wrap gap-1" role="group" aria-label="Filtrar por rol">
-            @foreach (['' => 'Todos'] + collect(\App\Enums\WorkspaceRole::cases())->mapWithKeys(fn ($case) => [$case->value => $case->label()])->all() as $value => $label)
+            @foreach (['' => 'Todos'] + collect(\App\Enums\WorkspaceRole::cases())->filter(fn ($case) => $this->isOwner || $case->isInternal())->mapWithKeys(fn ($case) => [$case->value => $case->label()])->all() as $value => $label)
                 <button type="button"
                         wire:click="$set('role', '{{ $value }}')"
                         @class([
@@ -32,8 +38,10 @@
         @if ($search !== '' || $role !== '')
             <x-ui.empty-state icon="magnifying-glass" title="No encontramos usuarios con ese criterio." />
         @else
-            <x-ui.empty-state icon="users" title="Aún no hay usuarios en este espacio" description="Crea admins, miembros o usuarios cliente, o agrega usuarios de tu cuenta.">
-                <x-button icon="plus" text="Nuevo usuario" sm wire:click="create" />
+            <x-ui.empty-state icon="users"
+                              :title="$this->isOwner ? 'Aún no hay usuarios en este espacio' : 'Tus proyectos aún no tienen equipo'"
+                              :description="$this->isOwner ? 'Crea admins, miembros o usuarios cliente, o agrega usuarios de tu cuenta.' : 'Crea miembros con acceso a tus proyectos.'">
+                <x-button icon="plus" :text="$this->isOwner ? 'Nuevo usuario' : 'Nuevo miembro'" sm wire:click="create" />
             </x-ui.empty-state>
         @endif
     @else
@@ -79,6 +87,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
+                                @if ($this->isOwner)
                                 <x-dropdown icon="ellipsis-horizontal" static>
                                     <x-dropdown.items icon="pencil-square" text="Editar" wire:click="edit('{{ $member->uuid }}')" />
                                     @if ($member->deactivated_at)
@@ -89,6 +98,7 @@
                                     <x-dropdown.items icon="user-minus" text="Quitar del espacio" separator wire:click="confirmRemove('{{ $member->uuid }}')" />
                                     <x-dropdown.items icon="trash" text="Eliminar usuario" wire:click="confirmDelete('{{ $member->uuid }}')" />
                                 </x-dropdown>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
@@ -115,7 +125,7 @@
     @endif
 
     <x-slide wire="showForm" size="lg"
-             :title="match ($form->mode) { 'existing' => 'Agregar usuario existente', 'edit' => 'Editar usuario', default => 'Nuevo usuario' }">
+             :title="match ($form->mode) { 'existing' => 'Agregar usuario existente', 'edit' => 'Editar usuario', default => $this->isOwner ? 'Nuevo usuario' : 'Nuevo miembro' }">
         <form id="user-form" wire:submit="save" class="space-y-5">
             @if ($form->mode === 'existing')
                 @if ($this->addableUserOptions === [])
@@ -133,17 +143,23 @@
                             :hint="$form->mode === 'create' ? 'Mínimo 8 caracteres. Compártela con el usuario por un canal seguro.' : 'Déjala vacía para mantener la actual.'" />
             @endif
 
-            <x-select.styled label="Rol *" wire:model.live="form.role" :options="\App\Enums\WorkspaceRole::options()"
-                             select="label:label|value:value|description:description" required />
+            @if ($this->isOwner)
+                <x-select.styled label="Rol *" wire:model.live="form.role" :options="\App\Enums\WorkspaceRole::options()"
+                                 select="label:label|value:value|description:description" required />
+            @else
+                <div class="rounded-md border border-line bg-hover px-3 py-2 text-sm text-ink-muted">
+                    Se crea como <span class="font-medium text-ink">miembro</span>: ve todas las tareas de los proyectos que elijas y edita solo las que tenga asignadas.
+                </div>
+            @endif
 
             @if ($form->isClientRole())
                 <x-select.styled label="Clientes *" wire:model="form.client_ids" :options="$this->clientOptions"
                                  multiple searchable
                                  hint="Un usuario cliente puede pertenecer a más de un cliente. Por ahora entra sin ver nada." />
             @else
-                <x-select.styled label="Proyectos" wire:model="form.project_ids" :options="$this->projectOptions"
+                <x-select.styled :label="$this->isOwner ? 'Proyectos' : 'Proyectos *'" wire:model="form.project_ids" :options="$this->projectOptions"
                                  multiple searchable
-                                 hint="Admins y miembros ven solo los proyectos a los que están asignados." />
+                                 :hint="$this->isOwner ? 'Admins y miembros ven solo los proyectos a los que están asignados.' : 'Solo puedes darle acceso a tus proyectos.'" />
             @endif
         </form>
 

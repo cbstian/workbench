@@ -24,6 +24,9 @@ use Livewire\Form;
  * - edit:     identity (name, email, password) and access of a member.
  *
  * Admins and members get projects; client users get one or more clients.
+ *
+ * An admin may only create members, with access to some of their own
+ * projects (RN-21, A-14); the rules enforce it whatever the browser sends.
  */
 class WorkspaceUserForm extends Form
 {
@@ -78,6 +81,14 @@ class WorkspaceUserForm extends Form
         $this->project_ids = $user->projects()->where('projects.workspace_id', $workspace->id)->pluck('projects.id')->map(fn ($id): int => (int) $id)->all();
     }
 
+    /**
+     * Whether the signed-in user is the super admin of the workspace.
+     */
+    public function actorIsOwner(): bool
+    {
+        return $this->workspace !== null && (bool) auth()->user()?->ownsWorkspace($this->workspace);
+    }
+
     public function isClientRole(): bool
     {
         return $this->role === WorkspaceRole::Client->value;
@@ -95,6 +106,12 @@ class WorkspaceUserForm extends Form
             'project_ids' => ['array'],
             'project_ids.*' => ['integer', Rule::exists(Project::class, 'id')->where('workspace_id', $this->workspace?->id)->whereNull('deleted_at')],
         ];
+
+        if (! $this->actorIsOwner()) {
+            $rules['role'] = ['required', Rule::in([WorkspaceRole::Member->value])];
+            $rules['project_ids'] = ['required', 'array', 'min:1'];
+            $rules['project_ids.*'] = ['integer', Rule::in(auth()->user()->projectIdsIn($this->workspace))];
+        }
 
         if ($this->mode === self::MODE_EXISTING) {
             return [
@@ -151,6 +168,9 @@ class WorkspaceUserForm extends Form
     {
         return [
             'client_ids.required' => 'Un usuario cliente debe pertenecer al menos a un cliente.',
+            'role.in' => 'Solo puedes crear miembros.',
+            'project_ids.required' => 'Elige al menos uno de tus proyectos.',
+            'project_ids.*.in' => 'Solo puedes dar acceso a tus proyectos.',
         ];
     }
 

@@ -41,5 +41,17 @@ class AppServiceProvider extends ServiceProvider
 
             return $workspace !== null && $user->ownsWorkspace($workspace);
         });
+
+        Gate::define('view-members', function (User $user): bool {
+            $workspace = app(CurrentWorkspace::class)->get();
+
+            return $workspace !== null && $user->can('viewMembers', $workspace);
+        });
+
+        Gate::define('view-trash', function (User $user): bool {
+            $workspace = app(CurrentWorkspace::class)->get();
+
+            return $workspace !== null && $user->can('viewTrash', $workspace);
+        });
     }
 }

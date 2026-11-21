@@ -56,9 +56,46 @@ it('cannot restore elements of another workspace', function () {
     Livewire::actingAs($owner)->test(Index::class)->call('restore', 'client', $foreign->id)->assertNotFound();
 });
 
-it('forbids anyone but the super admin', function (WorkspaceRole $role) {
+it('forbids members and client users', function (WorkspaceRole $role) {
     [, $workspace] = superAdminWithWorkspace();
     $user = User::factory()->memberOf($workspace, $role)->create();
 
     $this->actingAs($user)->get(route('trash.index'))->assertForbidden();
-})->with(WorkspaceRole::cases());
+})->with([WorkspaceRole::Member, WorkspaceRole::Client]);
+
+it('shows an admin only what was deleted in their projects', function () {
+    [$owner, $workspace] = superAdminWithWorkspace();
+    $admin = User::factory()->memberOf($workspace, WorkspaceRole::Admin)->create();
+    $own = Project::factory()->for($workspace)->create();
+    $foreign = Project::factory()->for($workspace)->create();
+    $own->members()->attach($admin);
+    $this->actingAs($owner);
+    $own->taskLabels()->create(['name' => 'Etiqueta propia'])->delete();
+    $foreignLabel = $foreign->taskLabels()->create(['name' => 'Etiqueta ajena']);
+    $foreignLabel->delete();
+    Client::factory()->for($workspace)->create(['name' => 'Cliente borrado'])->delete();
+    Project::factory()->for($workspace)->create(['name' => 'Proyecto borrado'])->delete();
+
+    $this->actingAs($admin)
+        ->get(route('trash.index'))
+        ->assertOk()
+        ->assertSeeText('Etiqueta propia')
+        ->assertDontSeeText('Etiqueta ajena')
+        ->assertDontSeeText('Cliente borrado')
+        ->assertDontSeeText('Proyecto borrado');
+
+    Livewire::actingAs($admin)->test(Index::class)->call('restore', 'task_label', $foreignLabel->id)->assertNotFound();
+});
+
+it('lets an admin restore an element of their project', function () {
+    [, $workspace] = superAdminWithWorkspace();
+    $admin = User::factory()->memberOf($workspace, WorkspaceRole::Admin)->create();
+    $project = Project::factory()->for($workspace)->create();
+    $project->members()->attach($admin);
+    $status = $project->statuses()->where('name', 'En curso')->sole();
+    $status->delete();
+
+    Livewire::actingAs($admin)->test(Index::class)->call('restore', 'project_status', $status->id);
+
+    expect($status->fresh()->trashed())->toBeFalse();
+});
