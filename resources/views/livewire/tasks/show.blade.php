@@ -1,4 +1,4 @@
-<x-ui.page width="wide">
+<x-ui.page>
     @php
         $project = $task->project;
         $breadcrumbs = [

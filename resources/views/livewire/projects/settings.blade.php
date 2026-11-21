@@ -1,4 +1,4 @@
-<x-ui.page width="narrow">
+<x-ui.page width="wide">
     <x-ui.page-header title="Configuración"
                       :icon="$project->icon"
                       :description="'Datos, equipo y flujo de trabajo de '.$project->name.'. Los cambios aplican solo a este proyecto.'"

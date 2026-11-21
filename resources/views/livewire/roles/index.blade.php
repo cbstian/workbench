@@ -1,4 +1,4 @@
-<x-ui.page width="wide">
+<x-ui.page>
     <x-ui.page-header title="Roles y permisos"
                       description="Qué puede hacer cada rol dentro de un espacio de trabajo. El rol se asigna por espacio al crear o editar un usuario." />
 

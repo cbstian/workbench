@@ -96,9 +96,9 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 
 | Ancho | Clase | Cuándo |
 | --- | --- | --- |
-| `full` (por defecto) | todo el ancho disponible | Listados, tablas, kanban, calendario, dashboards |
-| `wide` | `max-w-7xl` centrado | Detalle de un registro con paneles laterales |
-| `narrow` | `max-w-3xl` centrado | Formularios largos, ajustes y lectura (wiki) |
+| `full` (por defecto) | todo el ancho disponible | Listados, tablas, kanban, calendario, dashboards, detalle de un registro y wiki |
+| `wide` | `max-w-7xl` centrado | Configuración con varias secciones de formulario (p. ej. configurar un proyecto) |
+| `narrow` | `max-w-3xl` centrado | Solo un formulario corto (p. ej. Ajustes del perfil) |
 
 Reglas:
 

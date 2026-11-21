@@ -7,6 +7,9 @@
  */
 import { registerSidebar } from './modules/sidebar';
 import { registerChart } from './modules/chart';
+import { registerHtmlState } from './modules/html-state';
+
+registerHtmlState();
 
 document.addEventListener('alpine:init', () => {
     registerSidebar(window.Alpine);
