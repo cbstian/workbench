@@ -69,6 +69,12 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 - No ve Proyectos, Tareas, wiki ni archivos, aunque estén marcados como visibles para su Cliente (A-08): la habilidad `view-projects` lo excluye y las Policies le niegan cada recurso.
 - No crea ni edita nada (A-03). Las marcas de visibilidad quedan registradas para cuando se defina qué ve el cliente (P-04, P-05, P-06, P-14).
 
+### Ver como otro usuario (suplantación)
+
+- El Super admin puede ver la aplicación como cualquier usuario activo de su Cuenta (admin, miembro o usuario cliente) desde **Usuarios → «Ver como este usuario»** (`UserPolicy::impersonate`). No se puede suplantar a uno mismo, a usuarios de otra Cuenta ni a usuarios desactivados, ni encadenar suplantaciones.
+- `App\Support\Impersonation` guarda en la sesión al Super admin y su espacio actual; una barra flotante (`<x-app.impersonation-banner />`) indica a quién se está viendo y ofrece «Volver a mi perfil» (`DELETE /impersonation`).
+- Lo que se hace mientras tanto queda a nombre del usuario suplantado. Sus datos de cuenta (nombre, correo, contraseña) no se pueden cambiar en ese modo, y si el usuario se desactiva, el Super admin vuelve a su sesión.
+
 ## Uso básico del paquete
 
 ```php

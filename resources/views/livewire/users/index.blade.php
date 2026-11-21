@@ -90,6 +90,9 @@
                                 @if ($this->isOwner)
                                 <x-dropdown icon="ellipsis-horizontal" static>
                                     <x-dropdown.items icon="pencil-square" text="Editar" wire:click="edit('{{ $member->uuid }}')" />
+                                    @can('impersonate', $member)
+                                        <x-dropdown.items icon="eye" text="Ver como este usuario" wire:click="impersonate('{{ $member->uuid }}')" />
+                                    @endcan
                                     @if ($member->deactivated_at)
                                         <x-dropdown.items icon="lock-open" text="Reactivar acceso" wire:click="toggleActive('{{ $member->uuid }}')" />
                                     @else

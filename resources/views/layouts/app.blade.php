@@ -25,10 +25,12 @@
     <div class="flex min-h-dvh flex-col transition-[padding] duration-200 ease-out motion-reduce:transition-none md:sidebar-expanded:pl-60">
         <x-app.topbar :title="$title" />
 
-        <main id="content" class="flex-1 px-5 pt-6 pb-16 sm:px-8 lg:px-12 xl:px-16">
+        <main id="content" class="flex-1 px-5 pt-6 pb-24 sm:px-8 lg:px-12 xl:px-16">
             {{ $slot }}
         </main>
     </div>
+
+    <x-app.impersonation-banner />
 
     <x-toast />
     <x-dialog />

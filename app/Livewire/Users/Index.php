@@ -8,6 +8,7 @@ use App\Livewire\Forms\WorkspaceUserForm;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Models\WorkspaceMember;
+use App\Support\Impersonation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -246,6 +247,19 @@ class Index extends Component
             : $this->toast()->success('Acceso desactivado', "{$user->name} ya no puede entrar. Sus datos se conservan.")->send();
 
         $this->refreshLists();
+    }
+
+    /**
+     * See the app as this user; a floating bar brings the super admin back.
+     */
+    public function impersonate(string $uuid): void
+    {
+        $user = $this->findMember($uuid);
+        $this->authorize('impersonate', $user);
+
+        app(Impersonation::class)->start(auth()->user(), $user);
+
+        $this->redirectRoute('dashboard');
     }
 
     public function confirmRemove(string $uuid): void

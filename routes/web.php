@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\PageFileController;
 use App\Http\Controllers\TaskAttachmentController;
 use App\Http\Middleware\EnsureCurrentWorkspace;
@@ -36,6 +37,9 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::livewire('/settings', Settings\Profile::class)->name('settings.profile');
 
     Route::livewire('/workspaces', Workspaces\Index::class)->name('workspaces.index');
+
+    Route::post('/impersonation/{user:uuid}', [ImpersonationController::class, 'store'])->name('impersonation.start');
+    Route::delete('/impersonation', [ImpersonationController::class, 'destroy'])->name('impersonation.stop');
     Route::livewire('/roles', Roles\Index::class)->name('roles.index');
 
     Route::middleware(EnsureCurrentWorkspace::class)->group(function (): void {

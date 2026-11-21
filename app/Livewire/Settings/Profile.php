@@ -4,6 +4,7 @@ namespace App\Livewire\Settings;
 
 use App\Livewire\Forms\PasswordForm;
 use App\Livewire\Forms\ProfileForm;
+use App\Support\Impersonation;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -35,6 +36,10 @@ class Profile extends Component
      */
     public function saveProfile(): void
     {
+        if ($this->blockedWhileImpersonating()) {
+            return;
+        }
+
         $this->profile->update(auth()->user());
 
         $this->toast()->success('Perfil actualizado', 'Tus datos se guardaron.')->send();
@@ -45,9 +50,28 @@ class Profile extends Component
      */
     public function savePassword(): void
     {
+        if ($this->blockedWhileImpersonating()) {
+            return;
+        }
+
         $this->passwordForm->update(auth()->user());
 
         $this->toast()->success('Contraseña actualizada', 'Usa la nueva contraseña la próxima vez que ingreses.')->send();
+    }
+
+    /**
+     * A super admin seeing the app as someone else cannot change that
+     * person's name, email or password.
+     */
+    private function blockedWhileImpersonating(): bool
+    {
+        if (! app(Impersonation::class)->isActive()) {
+            return false;
+        }
+
+        $this->toast()->warning('No disponible al ver como otro usuario', 'Vuelve a tu perfil para cambiar datos de cuenta.')->send();
+
+        return true;
     }
 
     public function render(): View
