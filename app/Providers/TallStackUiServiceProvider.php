@@ -20,7 +20,24 @@ class TallStackUiServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->customizeCard();
         $this->customizeThemeSwitch();
+    }
+
+    /**
+     * Flat, Notion-like cards: thin token border, surface background, no shadow.
+     */
+    private function customizeCard(): void
+    {
+        TallStackUi::customize()
+            ->card()
+            ->block([
+                'wrapper.second' => 'flex w-full flex-col overflow-hidden rounded-lg border border-line bg-surface',
+                'header.wrapper.border' => 'border-b border-line',
+                'header.text.color' => 'text-ink',
+                'body' => 'grow px-4 py-4 text-ink',
+                'footer.wrapper' => 'border-t border-line p-4 text-ink',
+            ]);
     }
 
     /**
