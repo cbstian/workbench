@@ -51,6 +51,7 @@ return [
                     'route' => 'projects.index',
                     'icon' => 'folder',
                     'active' => 'projects.index',
+                    'can' => 'view-projects',
                     'children' => 'navigation.project-links',
                 ],
                 ['label' => 'Wiki del espacio', 'route' => 'wiki.index', 'icon' => 'book-open', 'active' => 'wiki.index', 'can' => 'manage-workspace'],

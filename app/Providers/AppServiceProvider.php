@@ -42,6 +42,13 @@ class AppServiceProvider extends ServiceProvider
             return $workspace !== null && $user->ownsWorkspace($workspace);
         });
 
+        Gate::define('view-projects', function (User $user): bool {
+            $workspace = app(CurrentWorkspace::class)->get();
+
+            return $workspace !== null
+                && ($user->ownsWorkspace($workspace) || $user->roleIn($workspace)?->isInternal() === true);
+        });
+
         Gate::define('view-members', function (User $user): bool {
             $workspace = app(CurrentWorkspace::class)->get();
 

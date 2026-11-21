@@ -4,7 +4,9 @@ use App\Enums\WorkspaceRole;
 use App\Models\User;
 
 it('renders the sidebar links registered in the navigation config', function () {
-    $this->actingAs(User::factory()->create())
+    [$owner] = superAdminWithWorkspace();
+
+    $this->actingAs($owner)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee(route('projects.index'), escape: false)
@@ -33,7 +35,9 @@ it('skips items whose route does not exist', function () {
 });
 
 it('renders labelled groups and items with children as collapsible', function () {
-    $this->actingAs(User::factory()->create())
+    [$owner] = superAdminWithWorkspace();
+
+    $this->actingAs($owner)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('wb-nav-group-espacio-de-trabajo', escape: false)

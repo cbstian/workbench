@@ -10,7 +10,8 @@
             <x-ui.empty-state icon="squares-2x2" title="Aún no tienes espacios de trabajo" description="Cuando te inviten a uno, aparecerá aquí." />
         @endcan
     @elseif ($this->isClientUser)
-        <x-ui.empty-state icon="eye-slash" title="Por ahora no hay contenido para ti" description="Tu acceso está listo. Cuando se defina qué pueden ver los clientes, lo encontrarás aquí." />
+        <x-ui.empty-state icon="eye-slash" title="Por ahora no hay contenido para ti"
+                          :description="'Tu acceso a '.$this->workspace->name.' está listo'.($this->clientNames !== [] ? ' como cliente de '.implode(', ', $this->clientNames) : '').'. Cuando se defina qué pueden ver los clientes, lo encontrarás aquí.'" />
     @else
     <section @class(['grid gap-3 sm:grid-cols-3', 'lg:grid-cols-5' => count($this->stats) > 3]) aria-label="Resumen">
         @foreach ($this->stats as $stat)

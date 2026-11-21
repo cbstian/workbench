@@ -68,6 +68,14 @@ class Index extends Component
     ];
 
     /**
+     * Client users see no projects for now (E10, A-08).
+     */
+    public function mount(): void
+    {
+        $this->authorize('view-projects');
+    }
+
+    /**
      * Go back to the first page whenever the search term changes.
      */
     public function updatedSearch(): void

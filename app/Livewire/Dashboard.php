@@ -64,6 +64,25 @@ class Dashboard extends Component
     }
 
     /**
+     * Names of the clients a client user belongs to in the current workspace.
+     *
+     * @return list<string>
+     */
+    #[Computed]
+    public function clientNames(): array
+    {
+        if (! $this->isClientUser) {
+            return [];
+        }
+
+        return auth()->user()->clients()
+            ->where('clients.workspace_id', $this->workspace->id)
+            ->orderBy('name')
+            ->pluck('name')
+            ->all();
+    }
+
+    /**
      * Projects of the current workspace the user may open.
      *
      * @return Builder<Project>

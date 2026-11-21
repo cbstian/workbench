@@ -63,6 +63,12 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 - Quien entra a una wiki crea, edita, mueve, etiqueta y envía a la papelera sus Páginas, y sube o borra archivos.
 - Las subpáginas de una Página en la papelera quedan ocultas hasta restaurarla.
 
+### Usuario cliente (E10)
+
+- Entra con su correo y contraseña y ve solo Inicio (con los Clientes a los que pertenece) y Ajustes de su perfil.
+- No ve Proyectos, Tareas, wiki ni archivos, aunque estén marcados como visibles para su Cliente (A-08): la habilidad `view-projects` lo excluye y las Policies le niegan cada recurso.
+- No crea ni edita nada (A-03). Las marcas de visibilidad quedan registradas para cuando se defina qué ve el cliente (P-04, P-05, P-06, P-14).
+
 ## Uso básico del paquete
 
 ```php
