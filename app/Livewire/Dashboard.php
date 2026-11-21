@@ -65,6 +65,55 @@ class Dashboard extends Component
     }
 
     /**
+     * ApexCharts options: projects created per month over the last six months.
+     *
+     * @return array<string, mixed>
+     */
+    #[Computed]
+    public function projectsPerMonthChart(): array
+    {
+        $months = collect(range(5, 0))->map(fn (int $monthsAgo) => now()->startOfMonth()->subMonths($monthsAgo));
+
+        $countsByMonth = Project::query()
+            ->where('created_at', '>=', $months->first())
+            ->pluck('created_at')
+            ->countBy(fn ($createdAt): string => $createdAt->format('Y-m'));
+
+        return [
+            'chart' => ['type' => 'area'],
+            'series' => [[
+                'name' => 'Proyectos',
+                'data' => $months->map(fn ($month): int => $countsByMonth->get($month->format('Y-m'), 0))->all(),
+            ]],
+            'xaxis' => [
+                'categories' => $months->map(fn ($month): string => str($month->translatedFormat('M'))->rtrim('.')->ucfirst()->toString())->all(),
+            ],
+            'yaxis' => ['min' => 0, 'forceNiceScale' => true, 'decimalsInFloat' => 0],
+            'fill' => ['type' => 'gradient', 'gradient' => ['opacityFrom' => 0.35, 'opacityTo' => 0]],
+        ];
+    }
+
+    /**
+     * ApexCharts options: projects visible to the client vs. hidden.
+     *
+     * @return array<string, mixed>
+     */
+    #[Computed]
+    public function visibilityChart(): array
+    {
+        $visible = Project::query()->where('is_visible_to_client', true)->count();
+        $hidden = Project::query()->where('is_visible_to_client', false)->count();
+
+        return [
+            'chart' => ['type' => 'donut'],
+            'series' => [$visible, $hidden],
+            'labels' => ['Visibles', 'Ocultos'],
+            'legend' => ['position' => 'bottom'],
+            'stroke' => ['width' => 0],
+        ];
+    }
+
+    /**
      * Most recently updated projects.
      *
      * @return Collection<int, Project>

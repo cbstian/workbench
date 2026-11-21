@@ -33,3 +33,17 @@ it('computes the dashboard figures', function () {
             'Visibles para el cliente' => 1,
         ]);
 });
+
+it('builds the chart series from the projects', function () {
+    $this->travelTo(now()->setDate(2026, 6, 15));
+
+    Project::factory()->create(['created_at' => now()->subMonths(2), 'is_visible_to_client' => false]);
+    Project::factory()->count(2)->create(['created_at' => now(), 'is_visible_to_client' => false]);
+    Project::factory()->create(['created_at' => now()->subYear(), 'is_visible_to_client' => false]);
+    Project::factory()->visibleToClient()->create(['created_at' => now()->subYear()]);
+
+    $component = Livewire::actingAs(User::factory()->create())->test(Dashboard::class)->instance();
+
+    expect($component->projectsPerMonthChart['series'][0]['data'])->toBe([0, 0, 0, 1, 0, 2])
+        ->and($component->visibilityChart['series'])->toBe([1, 4]);
+});

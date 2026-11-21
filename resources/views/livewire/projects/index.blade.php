@@ -1,4 +1,4 @@
-<div class="space-y-8">
+<x-ui.page>
     <x-ui.page-header title="Proyectos" description="Todos los proyectos del espacio de trabajo." />
 
     <x-table :headers="$this->headers"
@@ -18,7 +18,7 @@
         @endinteract
 
         @interact('column_description', $row)
-            <span class="block max-w-72 truncate text-ink-muted">{{ $row->description ?? '—' }}</span>
+            <span class="block max-w-xl truncate text-ink-muted">{{ $row->description ?? '—' }}</span>
         @endinteract
 
         @interact('column_is_visible_to_client', $row)
@@ -35,4 +35,4 @@
             </time>
         @endinteract
     </x-table>
-</div>
+</x-ui.page>

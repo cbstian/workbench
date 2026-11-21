@@ -2,6 +2,7 @@
 
 use App\Livewire\Dashboard;
 use App\Livewire\Projects;
+use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,4 +20,5 @@ Route::view('/', 'landing')->name('home');
 Route::middleware('auth')->group(function (): void {
     Route::livewire('/dashboard', Dashboard::class)->name('dashboard');
     Route::livewire('/projects', Projects\Index::class)->name('projects.index');
+    Route::livewire('/settings', Settings\Profile::class)->name('settings.profile');
 });
