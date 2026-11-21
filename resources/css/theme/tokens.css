@@ -26,6 +26,11 @@
         --wb-scrollbar-thumb: rgb(55 53 47 / 0.18);
         --wb-scrollbar-thumb-hover: rgb(55 53 47 / 0.32);
 
+        /* Overlays (slide, modal): dimmed backdrop and a raised panel with a visible edge */
+        --wb-overlay: rgb(25 23 20 / 0.45);
+        --wb-elevated: #ffffff;
+        --wb-edge: #d3d0ca;
+
         /* Chart series (ApexCharts, in order). Oak first, then Notion-like hues */
         --wb-chart-1: #8f6b4a;
         --wb-chart-2: #337ea9;
@@ -63,6 +68,10 @@
         --wb-scrollbar-thumb: rgb(255 255 255 / 0.14);
         --wb-scrollbar-thumb-hover: rgb(255 255 255 / 0.26);
 
+        --wb-overlay: rgb(0 0 0 / 0.62);
+        --wb-elevated: #2b2b29;
+        --wb-edge: #4a4945;
+
         --wb-chart-1: #b9976f;
         --wb-chart-2: #529cca;
         --wb-chart-3: #4dab9a;
@@ -95,4 +104,7 @@
     --color-active: var(--wb-active);
     --color-accent: var(--wb-accent);
     --color-ring: var(--wb-ring);
+    --color-overlay: var(--wb-overlay);
+    --color-elevated: var(--wb-elevated);
+    --color-edge: var(--wb-edge);
 }

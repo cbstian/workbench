@@ -21,6 +21,7 @@ class TallStackUiServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->customizeCard();
+        $this->customizeSlide();
         $this->customizeThemeSwitch();
     }
 
@@ -37,6 +38,26 @@ class TallStackUiServiceProvider extends ServiceProvider
                 'header.text.color' => 'text-ink',
                 'body' => 'grow px-4 py-4 text-ink',
                 'footer.wrapper' => 'border-t border-line p-4 text-ink',
+            ]);
+    }
+
+    /**
+     * Side panels (create/edit forms): a darker, slightly blurred backdrop and
+     * a raised panel with a visible left edge, so its border stands out from
+     * the page in light and dark themes.
+     */
+    private function customizeSlide(): void
+    {
+        TallStackUi::customize()
+            ->slide()
+            ->block([
+                'wrapper.first' => 'fixed inset-0 bg-overlay backdrop-blur-[2px] transform transition-opacity',
+                'wrapper.fifth' => 'flex flex-col bg-elevated py-6 shadow-2xl ring-1 ring-edge',
+                'title.text' => 'whitespace-normal text-base font-semibold text-ink',
+                'title.close' => 'h-5 w-5 cursor-pointer text-ink-subtle hover:text-ink',
+                'body' => 'soft-scrollbar grow overflow-y-auto px-6 py-5 text-ink',
+                'header.divider' => 'border-b border-b-line pb-4',
+                'footer.wrapper' => 'border-t border-t-line px-4 pt-4',
             ]);
     }
 
