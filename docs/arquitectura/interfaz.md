@@ -63,6 +63,13 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 - Se cambia desde el selector del sidebar (`navigation.workspace-switcher`), que se refresca con el evento `workspaces-changed`.
 - Las páginas dentro de un Workspace usan el middleware `EnsureCurrentWorkspace` y el trait `App\Livewire\Concerns\WithCurrentWorkspace` (`$this->workspace`).
 
+### Tareas de un proyecto (E7)
+
+- `App\Livewire\Projects\TaskBoard` (dentro de la página del proyecto) muestra las mismas tareas raíz filtradas en **kanban**, **listado** (ordenable) y **calendario** (mes, lunes primero; las tareas sin fechas no aparecen).
+- Filtros: estado, prioridad, asignado, etiqueta, rango de fechas (solapamiento con inicio–término) y búsqueda (full-text `es_unaccent` + `ilike` en el nombre). Viven en `App\Support\TaskFilters`, que descarta ids que ya no son del proyecto.
+- La vista y los filtros se guardan por usuario y proyecto en `project_task_views` en cada cambio; el mes del calendario y el orden del listado no se recuerdan.
+- Kanban: arrastrar con `wire:sort` (grupo `tasks`, id de grupo = estado). `App\Actions\Tasks\MoveTask` cambia estado y posición (huecos de 1024, rebalanceo si los vecinos son contiguos) y registra `status_changed`. Si el usuario no puede editar la tarea, se avisa y no se mueve.
+
 ## 2. Anatomía de una página
 
 ```blade

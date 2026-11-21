@@ -2,7 +2,7 @@
 
 use App\Enums\TaskActivityEvent;
 use App\Enums\WorkspaceRole;
-use App\Livewire\Projects\Show as ProjectShow;
+use App\Livewire\Projects\TaskBoard;
 use App\Livewire\Tasks\Show;
 use App\Livewire\Trash\Index;
 use App\Models\Project;
@@ -47,7 +47,7 @@ it('creates a task with the initial values of the project (RN-22)', function () 
     $label = $project->taskLabels()->create(['name' => 'Bug']);
 
     Livewire::actingAs($member)
-        ->test(ProjectShow::class, ['project' => $project])
+        ->test(TaskBoard::class, ['project' => $project])
         ->call('createTask')
         ->assertSet('form.status_id', $project->initialStatus->id)
         ->assertSet('form.assignee_ids', [$member->id])
@@ -75,7 +75,7 @@ it('validates the task (A-06, A-12, A-22)', function () {
     $foreignStatus = Project::factory()->create()->initialStatus;
 
     Livewire::actingAs($owner)
-        ->test(ProjectShow::class, ['project' => $project])
+        ->test(TaskBoard::class, ['project' => $project])
         ->call('createTask')
         ->set('form.name', '')
         ->set('form.status_id', $foreignStatus->id)
@@ -86,7 +86,7 @@ it('validates the task (A-06, A-12, A-22)', function () {
         ->assertHasErrors(['form.name', 'form.status_id', 'form.ends_on', 'form.assignee_ids.0']);
 
     Livewire::actingAs($owner)
-        ->test(ProjectShow::class, ['project' => $project])
+        ->test(TaskBoard::class, ['project' => $project])
         ->call('createTask')
         ->set('form.name', 'Sin estado')
         ->set('form.status_id', null)
