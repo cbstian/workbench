@@ -52,6 +52,7 @@ class TaskFactory extends Factory
             'starts_on' => null,
             'ends_on' => null,
             'position' => 0,
+            'created_by_id' => fn (array $attributes): int => Project::query()->findOrFail($attributes['project_id'])->workspace->account->owner_id,
         ];
     }
 
@@ -65,6 +66,7 @@ class TaskFactory extends Factory
             'parent_id' => $task->id,
             'status_id' => $task->status_id,
             'priority_id' => $task->priority_id,
+            'created_by_id' => $task->created_by_id,
         ]);
     }
 }

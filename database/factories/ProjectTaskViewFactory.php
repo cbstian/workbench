@@ -25,14 +25,13 @@ class ProjectTaskViewFactory extends Factory
             'project_id' => Project::factory(),
             'view' => TaskView::Kanban,
             'filters' => [
+                'v' => 1,
                 'status_ids' => [],
                 'priority_ids' => [],
                 'assignee_ids' => [],
                 'label_ids' => [],
-                'starts_from' => null,
-                'starts_to' => null,
-                'ends_from' => null,
-                'ends_to' => null,
+                'date_range' => ['from' => null, 'to' => null],
+                'search' => null,
             ],
         ];
     }

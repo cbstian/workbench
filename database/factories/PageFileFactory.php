@@ -21,12 +21,12 @@ class PageFileFactory extends Factory
     {
         return [
             'page_id' => Page::factory(),
-            'user_id' => User::factory(),
+            'uploaded_by_id' => User::factory(),
             'disk' => 'local',
-            'path' => 'pages/notas.md',
+            'path' => 'pages/'.fake()->uuid(),
             'original_name' => 'notas.md',
             'mime_type' => 'text/markdown',
-            'size' => 480,
+            'size_bytes' => 480,
         ];
     }
 }

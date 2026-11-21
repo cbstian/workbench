@@ -47,7 +47,7 @@ class ProjectLinks extends Component
         return Project::query()
             ->orderBy('name')
             ->limit(self::LIMIT + 1)
-            ->get(['id', 'name', 'icon']);
+            ->get(['id', 'uuid', 'name', 'icon']);
     }
 
     #[On('projects-changed')]

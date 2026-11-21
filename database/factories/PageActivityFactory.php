@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\PageActivityEvent;
 use App\Models\Page;
 use App\Models\PageActivity;
 use App\Models\User;
@@ -22,8 +23,8 @@ class PageActivityFactory extends Factory
         return [
             'page_id' => Page::factory(),
             'user_id' => User::factory(),
-            'event' => 'updated',
-            'properties' => ['after' => ['title' => 'Inicio']],
+            'event' => PageActivityEvent::Updated,
+            'changes' => ['title' => ['old' => 'Notas', 'new' => 'Inicio']],
         ];
     }
 }

@@ -21,12 +21,12 @@ class TaskAttachmentFactory extends Factory
     {
         return [
             'task_id' => Task::factory(),
-            'user_id' => User::factory(),
+            'uploaded_by_id' => User::factory(),
             'disk' => 'local',
-            'path' => 'tasks/brief.pdf',
+            'path' => 'tasks/'.fake()->uuid(),
             'original_name' => 'brief.pdf',
             'mime_type' => 'application/pdf',
-            'size' => 1200,
+            'size_bytes' => 1200,
         ];
     }
 }

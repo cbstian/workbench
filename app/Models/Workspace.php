@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+use App\Models\Concerns\TracksDeleter;
 use Database\Factories\WorkspaceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,33 +16,45 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
- * The top-level place where clients, projects and documentation live (RN-02).
+ * The top-level place where clients, projects and documentation live (RN-02),
+ * and the tenant boundary of the data model.
  *
  * Soft deletes back the trash bin described in RN-19.
  *
  * @property int $id
- * @property int $owner_id
+ * @property string $uuid
+ * @property int $account_id
  * @property string $name
+ * @property int $created_by_id
  * @property Carbon|null $deleted_at
+ * @property int|null $deleted_by_id
  */
-#[Fillable(['owner_id', 'name'])]
+#[Fillable(['account_id', 'name', 'created_by_id'])]
 class Workspace extends Model
 {
     /** @use HasFactory<WorkspaceFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasPublicUuid, SoftDeletes, TracksDeleter;
 
     /**
-     * Super admin who created this workspace.
+     * Account that owns the workspace; its owner is the workspace's super admin.
      *
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<Account, $this>
      */
-    public function owner(): BelongsTo
+    public function account(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'owner_id');
+        return $this->belongsTo(Account::class);
     }
 
     /**
-     * Users invited to this workspace. The owner is not a member by default.
+     * @return BelongsTo<User, $this>
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    /**
+     * Users invited to this workspace. The super admin is not a member.
      *
      * @return BelongsToMany<User, $this, WorkspaceMember>
      */
@@ -97,17 +111,18 @@ class Workspace extends Model
     }
 
     /**
-     * Workspaces the user owns or was invited to (RN-03).
+     * Workspaces of the accounts the user owns, plus those they were invited to (RN-03).
      *
      * @param  Builder<Workspace>  $query
      */
     public function scopeVisibleTo(Builder $query, User $user): void
     {
         $query->where(function (Builder $query) use ($user): void {
-            $query->whereBelongsTo($user, 'owner')
-                ->orWhereHas('members', function (Builder $query) use ($user): void {
-                    $query->whereKey($user->id);
-                });
+            $query->whereHas('account', function (Builder $query) use ($user): void {
+                $query->where('owner_id', $user->id);
+            })->orWhereHas('members', function (Builder $query) use ($user): void {
+                $query->whereKey($user->id);
+            });
         });
     }
 }

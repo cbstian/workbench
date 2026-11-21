@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Models\Account;
 use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,8 +24,9 @@ class WorkspaceFactory extends Factory
     public function definition(): array
     {
         return [
-            'owner_id' => User::factory(),
+            'account_id' => Account::factory(),
             'name' => fake()->randomElement(self::NAMES),
+            'created_by_id' => fn (array $attributes): int => Account::query()->findOrFail($attributes['account_id'])->owner_id,
         ];
     }
 }

@@ -29,6 +29,7 @@ class ClientFactory extends Factory
             'description' => fake()->optional()->sentence(),
             'logo_path' => null,
             'color' => fake()->hexColor(),
+            'created_by_id' => fn (array $attributes): int => Workspace::query()->findOrFail($attributes['workspace_id'])->account->owner_id,
         ];
     }
 }

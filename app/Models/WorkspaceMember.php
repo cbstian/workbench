@@ -6,11 +6,13 @@ use App\Enums\WorkspaceRole;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
- * Invitation of a user to a workspace, with a single role.
+ * Membership of a user in a workspace with a single role. It is the only
+ * source of truth for the workspace role (docs/arquitectura/modelo-de-datos.md, D-04).
  *
  * @property int $workspace_id
  * @property int $user_id
  * @property WorkspaceRole $role
+ * @property int|null $created_by_id
  */
 class WorkspaceMember extends Pivot
 {

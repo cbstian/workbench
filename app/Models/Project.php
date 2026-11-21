@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+use App\Models\Concerns\TracksDeleter;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,19 +22,22 @@ use Illuminate\Support\Carbon;
  * Soft deletes back the trash bin described in RN-19.
  *
  * @property int $id
+ * @property string $uuid
  * @property int $workspace_id
  * @property int|null $client_id
  * @property string $name
  * @property string|null $description
  * @property string|null $icon
  * @property bool $is_visible_to_client
+ * @property int $created_by_id
  * @property Carbon|null $deleted_at
+ * @property int|null $deleted_by_id
  */
-#[Fillable(['workspace_id', 'client_id', 'name', 'description', 'icon', 'is_visible_to_client'])]
+#[Fillable(['workspace_id', 'client_id', 'name', 'description', 'icon', 'is_visible_to_client', 'created_by_id'])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasPublicUuid, SoftDeletes, TracksDeleter;
 
     /**
      * Get the attributes that should be cast.
@@ -63,13 +68,23 @@ class Project extends Model
     }
 
     /**
+     * Super admin who created the project (RN-13).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    /**
      * Admins and members assigned to this project.
      *
-     * @return BelongsToMany<User, $this>
+     * @return BelongsToMany<User, $this, ProjectMember>
      */
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'project_user')->using(ProjectMember::class);
     }
 
     /**

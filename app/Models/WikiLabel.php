@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TracksDeleter;
 use Database\Factories\WikiLabelFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,13 +18,15 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $workspace_id
  * @property string $name
+ * @property string|null $color
  * @property Carbon|null $deleted_at
+ * @property int|null $deleted_by_id
  */
-#[Fillable(['workspace_id', 'name'])]
+#[Fillable(['workspace_id', 'name', 'color'])]
 class WikiLabel extends Model
 {
     /** @use HasFactory<WikiLabelFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, TracksDeleter;
 
     /**
      * @return BelongsTo<Workspace, $this>
@@ -34,10 +37,10 @@ class WikiLabel extends Model
     }
 
     /**
-     * @return BelongsToMany<Page, $this>
+     * @return BelongsToMany<Page, $this, PageLabelAssignment>
      */
     public function pages(): BelongsToMany
     {
-        return $this->belongsToMany(Page::class);
+        return $this->belongsToMany(Page::class, 'page_wiki_label')->using(PageLabelAssignment::class);
     }
 }

@@ -17,14 +17,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $project_id
  * @property TaskView $view
  * @property array{
- *     status_ids: list<int>,
- *     priority_ids: list<int>,
- *     assignee_ids: list<int>,
- *     label_ids: list<int>,
- *     starts_from: string|null,
- *     starts_to: string|null,
- *     ends_from: string|null,
- *     ends_to: string|null
+ *     v?: int,
+ *     status_ids?: list<int>,
+ *     priority_ids?: list<int>,
+ *     assignee_ids?: list<int>,
+ *     label_ids?: list<int>,
+ *     date_range?: array{from: string|null, to: string|null},
+ *     search?: string|null
  * } $filters
  */
 #[Fillable(['user_id', 'project_id', 'view', 'filters'])]

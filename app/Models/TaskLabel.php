@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TracksDeleter;
 use Database\Factories\TaskLabelFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,13 +18,15 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $project_id
  * @property string $name
+ * @property string|null $color
  * @property Carbon|null $deleted_at
+ * @property int|null $deleted_by_id
  */
-#[Fillable(['project_id', 'name'])]
+#[Fillable(['project_id', 'name', 'color'])]
 class TaskLabel extends Model
 {
     /** @use HasFactory<TaskLabelFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, TracksDeleter;
 
     /**
      * @return BelongsTo<Project, $this>
@@ -34,10 +37,10 @@ class TaskLabel extends Model
     }
 
     /**
-     * @return BelongsToMany<Task, $this>
+     * @return BelongsToMany<Task, $this, TaskLabelAssignment>
      */
     public function tasks(): BelongsToMany
     {
-        return $this->belongsToMany(Task::class);
+        return $this->belongsToMany(Task::class, 'task_task_label')->using(TaskLabelAssignment::class);
     }
 }

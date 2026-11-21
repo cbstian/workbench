@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+use App\Models\Concerns\InheritsWorkspace;
+use App\Models\Concerns\TracksDeleter;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,28 +20,37 @@ use Illuminate\Support\Carbon;
  * A wiki page. Without a project it belongs to the workspace wiki (RN-09).
  *
  * @property int $id
+ * @property string $uuid
  * @property int $workspace_id
  * @property int|null $project_id
  * @property int|null $parent_id
  * @property string $title
+ * @property string|null $icon
  * @property string|null $body
  * @property bool $is_visible_to_client
  * @property int $position
+ * @property int $created_by_id
+ * @property int|null $updated_by_id
  * @property Carbon|null $deleted_at
+ * @property int|null $deleted_by_id
  */
 #[Fillable([
     'workspace_id',
     'project_id',
     'parent_id',
     'title',
+    'icon',
     'body',
     'is_visible_to_client',
     'position',
+    'created_by_id',
+    'updated_by_id',
 ])]
+#[Hidden(['search_vector'])]
 class Page extends Model
 {
     /** @use HasFactory<PageFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasPublicUuid, InheritsWorkspace, SoftDeletes, TracksDeleter;
 
     /**
      * Get the attributes that should be cast.
@@ -50,6 +63,14 @@ class Page extends Model
             'is_visible_to_client' => 'boolean',
             'position' => 'integer',
         ];
+    }
+
+    /**
+     * A project page takes the workspace of its project.
+     */
+    protected function inheritedWorkspaceId(): ?int
+    {
+        return Project::withTrashed()->whereKey($this->project_id)->value('workspace_id');
     }
 
     /**
@@ -85,11 +106,11 @@ class Page extends Model
     }
 
     /**
-     * @return BelongsToMany<WikiLabel, $this>
+     * @return BelongsToMany<WikiLabel, $this, PageLabelAssignment>
      */
     public function labels(): BelongsToMany
     {
-        return $this->belongsToMany(WikiLabel::class);
+        return $this->belongsToMany(WikiLabel::class, 'page_wiki_label')->using(PageLabelAssignment::class);
     }
 
     /**

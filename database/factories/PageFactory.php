@@ -32,6 +32,7 @@ class PageFactory extends Factory
             'body' => 'Notas del equipo.',
             'is_visible_to_client' => false,
             'position' => 0,
+            'created_by_id' => fn (array $attributes): int => Workspace::query()->findOrFail($attributes['workspace_id'])->account->owner_id,
         ];
     }
 

@@ -21,7 +21,7 @@ class ProjectPriorityFactory extends Factory
         return [
             'project_id' => Project::factory(),
             'name' => 'crítica',
-            'position' => 10,
+            'position' => 6144,
             'is_initial' => false,
         ];
     }

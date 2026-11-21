@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\StatusCategory;
 use App\Models\Project;
 use App\Models\ProjectStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -24,7 +25,8 @@ class ProjectStatusFactory extends Factory
         return [
             'project_id' => Project::factory(),
             'name' => 'Revisión',
-            'position' => 10,
+            'category' => StatusCategory::Started,
+            'position' => 3584,
             'is_initial' => false,
         ];
     }

@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\WorkspaceRole;
 use App\Models\User;
+use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -51,5 +53,15 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes): array => [
             'deactivated_at' => now(),
         ]);
+    }
+
+    /**
+     * Invite the user to a workspace with a role.
+     */
+    public function memberOf(Workspace $workspace, WorkspaceRole $role = WorkspaceRole::Member): static
+    {
+        return $this->afterCreating(function (User $user) use ($workspace, $role): void {
+            $workspace->members()->attach($user, ['role' => $role]);
+        });
     }
 }

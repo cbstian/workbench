@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+use App\Models\Concerns\InheritsWorkspace;
+use App\Models\Concerns\TracksDeleter;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +19,12 @@ use Illuminate\Support\Carbon;
 /**
  * Work inside a project. A subtask is a task whose parent is a root task (RN-17).
  *
+ * The database keeps the status, priority, parent, labels and assignees inside
+ * the project, and sets `completed_at` when the status category is closed.
+ *
  * @property int $id
+ * @property string $uuid
+ * @property int $workspace_id
  * @property int $project_id
  * @property int|null $parent_id
  * @property int $status_id
@@ -25,7 +34,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $starts_on
  * @property Carbon|null $ends_on
  * @property int $position
+ * @property Carbon|null $completed_at
+ * @property int $created_by_id
  * @property Carbon|null $deleted_at
+ * @property int|null $deleted_by_id
  */
 #[Fillable([
     'project_id',
@@ -37,11 +49,13 @@ use Illuminate\Support\Carbon;
     'starts_on',
     'ends_on',
     'position',
+    'created_by_id',
 ])]
+#[Hidden(['search_vector'])]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasPublicUuid, InheritsWorkspace, SoftDeletes, TracksDeleter;
 
     /**
      * Get the attributes that should be cast.
@@ -54,7 +68,13 @@ class Task extends Model
             'starts_on' => 'date',
             'ends_on' => 'date',
             'position' => 'integer',
+            'completed_at' => 'datetime',
         ];
+    }
+
+    protected function inheritedWorkspaceId(): ?int
+    {
+        return Project::withTrashed()->whereKey($this->project_id)->value('workspace_id');
     }
 
     /**
@@ -98,21 +118,29 @@ class Task extends Model
     }
 
     /**
-     * Admins and members assigned to this task. Never a client user (RN-18).
-     *
-     * @return BelongsToMany<User, $this>
+     * @return BelongsTo<User, $this>
      */
-    public function assignees(): BelongsToMany
+    public function creator(): BelongsTo
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsTo(User::class, 'created_by_id');
     }
 
     /**
-     * @return BelongsToMany<TaskLabel, $this>
+     * Project team members assigned to this task. Never a client user (RN-18).
+     *
+     * @return BelongsToMany<User, $this, TaskAssignee>
+     */
+    public function assignees(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'task_user')->using(TaskAssignee::class);
+    }
+
+    /**
+     * @return BelongsToMany<TaskLabel, $this, TaskLabelAssignment>
      */
     public function labels(): BelongsToMany
     {
-        return $this->belongsToMany(TaskLabel::class);
+        return $this->belongsToMany(TaskLabel::class, 'task_task_label')->using(TaskLabelAssignment::class);
     }
 
     /**

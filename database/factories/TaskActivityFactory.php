@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\TaskActivityEvent;
 use App\Models\Task;
 use App\Models\TaskActivity;
 use App\Models\User;
@@ -22,8 +23,8 @@ class TaskActivityFactory extends Factory
         return [
             'task_id' => Task::factory(),
             'user_id' => User::factory(),
-            'event' => 'created',
-            'properties' => ['after' => ['name' => 'Preparar propuesta']],
+            'event' => TaskActivityEvent::Created,
+            'changes' => ['name' => ['old' => null, 'new' => 'Preparar propuesta']],
         ];
     }
 }

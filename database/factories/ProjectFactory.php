@@ -57,6 +57,7 @@ class ProjectFactory extends Factory
             'description' => fake()->optional(0.85)->randomElement(self::DESCRIPTIONS),
             'icon' => fake()->randomElement(self::ICONS),
             'is_visible_to_client' => fake()->boolean(35),
+            'created_by_id' => fn (array $attributes): int => Workspace::query()->findOrFail($attributes['workspace_id'])->account->owner_id,
             'created_at' => $createdAt = fake()->dateTimeBetween('-8 months'),
             'updated_at' => fake()->dateTimeBetween($createdAt),
         ];

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\PageActivityEvent;
+use App\Models\Concerns\InheritsWorkspace;
 use Database\Factories\PageActivityFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,18 +14,23 @@ use Illuminate\Support\Carbon;
 /**
  * One recorded change of a wiki page. Pages are not versioned (RN-09).
  *
+ * Append-only: the database rejects updates and deletes. `changes` holds
+ * `{"field": {"old": ..., "new": ...}}` for the fields that changed.
+ *
  * @property int $id
+ * @property int $workspace_id
  * @property int $page_id
- * @property int $user_id
- * @property string $event
- * @property array<string, mixed>|null $properties
+ * @property int|null $user_id
+ * @property PageActivityEvent $event
+ * @property array<string, array{old: mixed, new: mixed}>|null $changes
+ * @property array<string, mixed>|null $metadata
  * @property Carbon|null $created_at
  */
-#[Fillable(['page_id', 'user_id', 'event', 'properties'])]
+#[Fillable(['page_id', 'user_id', 'event', 'changes', 'metadata'])]
 class PageActivity extends Model
 {
     /** @use HasFactory<PageActivityFactory> */
-    use HasFactory;
+    use HasFactory, InheritsWorkspace;
 
     public const UPDATED_AT = null;
 
@@ -35,8 +42,15 @@ class PageActivity extends Model
     protected function casts(): array
     {
         return [
-            'properties' => 'array',
+            'event' => PageActivityEvent::class,
+            'changes' => 'array',
+            'metadata' => 'array',
         ];
+    }
+
+    protected function inheritedWorkspaceId(): ?int
+    {
+        return Page::withTrashed()->whereKey($this->page_id)->value('workspace_id');
     }
 
     /**
@@ -48,6 +62,8 @@ class PageActivity extends Model
     }
 
     /**
+     * User who made the change; null for console actions.
+     *
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo

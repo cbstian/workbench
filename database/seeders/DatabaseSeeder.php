@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Account;
 use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -27,10 +28,15 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ])->save();
 
+        $account = $owner->ownedAccount ?? Account::openFor($owner);
+
         Workspace::query()->firstOrCreate(
             [
-                'owner_id' => $owner->id,
+                'account_id' => $account->id,
                 'name' => 'Personal',
+            ],
+            [
+                'created_by_id' => $owner->id,
             ],
         );
 
