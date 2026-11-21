@@ -3,6 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Project;
+use App\Models\ProjectPriority;
+use App\Models\ProjectStatus;
+use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -49,6 +52,7 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
+            'workspace_id' => Workspace::factory(),
             'name' => fake()->randomElement(self::KINDS).' '.fake()->randomElement(self::SUBJECTS),
             'description' => fake()->optional(0.85)->randomElement(self::DESCRIPTIONS),
             'icon' => fake()->randomElement(self::ICONS),
@@ -56,6 +60,21 @@ class ProjectFactory extends Factory
             'created_at' => $createdAt = fake()->dateTimeBetween('-8 months'),
             'updated_at' => fake()->dateTimeBetween($createdAt),
         ];
+    }
+
+    /**
+     * Configure the factory.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Project $project): void {
+            if ($project->statuses()->exists()) {
+                return;
+            }
+
+            $project->statuses()->createMany(ProjectStatus::DEFAULTS);
+            $project->priorities()->createMany(ProjectPriority::DEFAULTS);
+        });
     }
 
     /**

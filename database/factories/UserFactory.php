@@ -42,4 +42,14 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Block sign-in without deleting the user.
+     */
+    public function deactivated(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'deactivated_at' => now(),
+        ]);
+    }
 }

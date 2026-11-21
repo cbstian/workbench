@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Workspace;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -17,14 +18,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::query()
-            ->firstOrNew(['email' => 'demo@workbench.test'])
-            ->forceFill([
-                'name' => 'Sebastián Aguilera',
-                'password' => 'password',
-                'email_verified_at' => now(),
-            ])
-            ->save();
+        $owner = User::query()
+            ->firstOrNew(['email' => 'demo@workbench.test']);
+
+        $owner->forceFill([
+            'name' => 'Sebastián Aguilera',
+            'password' => 'password',
+            'email_verified_at' => now(),
+        ])->save();
+
+        Workspace::query()->firstOrCreate(
+            [
+                'owner_id' => $owner->id,
+                'name' => 'Personal',
+            ],
+        );
 
         $this->call(ProjectSeeder::class);
     }

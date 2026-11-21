@@ -3,15 +3,19 @@
 namespace Database\Seeders;
 
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class ProjectSeeder extends Seeder
 {
     /**
-     * Seed demo projects for the projects table.
+     * Seed demo projects into the demo user's workspace.
      */
     public function run(): void
     {
-        Project::factory()->count(36)->create();
+        $owner = User::query()->where('email', 'demo@workbench.test')->firstOrFail();
+        $workspace = $owner->ownedWorkspaces()->firstOrFail();
+
+        Project::factory()->count(36)->for($workspace)->create();
     }
 }
