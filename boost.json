@@ -1,11 +1,17 @@
 {
     "agents": [
-        "cursor"
+        "cursor",
+        "claude_code",
+        "grok_build"
     ],
     "cloud": false,
     "guidelines": true,
     "mcp": true,
     "nightwatch": false,
+    "packages": [
+        "tallstackui/tallstackui",
+        "spatie/laravel-permission"
+    ],
     "sail": false,
     "skills": [
         "infer-conventions",
@@ -13,6 +19,8 @@
         "laravel-best-practices",
         "testing-best-practices",
         "livewire-development",
-        "tailwindcss-development"
+        "tailwindcss-development",
+        "laravel-permission-development",
+        "tallstackui-development"
     ]
 }
