@@ -14,8 +14,12 @@
 | - icon:   Heroicons (outline) name rendered with TallStackUI <x-icon>.
 | - active: route name pattern(s) that highlight the item (default: route).
 | - can:    optional ability; the item is hidden when the user lacks it.
+| - children: optional Livewire component name that renders the item's
+|           sub-list (e.g. each project); the item gets an expand chevron.
 |
 | Groups render in order; a null label renders the group without a heading.
+| Labelled groups and items with children collapse, and the sidebar remembers
+| their state per browser.
 | `footer` items are pinned to the bottom of the sidebar.
 |
 */
@@ -32,7 +36,13 @@ return [
         [
             'label' => 'Espacio de trabajo',
             'items' => [
-                ['label' => 'Proyectos', 'route' => 'projects.index', 'icon' => 'folder', 'active' => 'projects.*'],
+                [
+                    'label' => 'Proyectos',
+                    'route' => 'projects.index',
+                    'icon' => 'folder',
+                    'active' => 'projects.index',
+                    'children' => 'navigation.project-links',
+                ],
             ],
         ],
     ],

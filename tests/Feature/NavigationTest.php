@@ -30,3 +30,11 @@ it('skips items whose route does not exist', function () {
         ->assertOk()
         ->assertDontSeeText('Módulo pendiente');
 });
+
+it('renders labelled groups and items with children as collapsible', function () {
+    $this->actingAs(User::factory()->create())
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('wb-nav-group-espacio-de-trabajo', escape: false)
+        ->assertSee('Expandir Proyectos', escape: false);
+});

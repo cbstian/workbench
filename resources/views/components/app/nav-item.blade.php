@@ -4,11 +4,13 @@
     Props:
     - href:   destination URL (use route()).
     - icon:   Heroicons name rendered through TallStackUI <x-icon>.
+    - emoji:  alternative to `icon` (e.g. a project's icon).
     - active: highlights the item for the current section.
 --}}
 @props([
     'href',
     'icon' => null,
+    'emoji' => null,
     'active' => false,
 ])
 
@@ -16,11 +18,13 @@
    wire:navigate
    @if ($active) aria-current="page" @endif
    {{ $attributes->class([
-       'group flex h-8 items-center gap-2.5 rounded-md px-2 text-sm transition-colors',
+       'group flex h-8 min-w-0 items-center gap-2.5 rounded-md px-2 text-sm transition-colors',
        'bg-active font-medium text-ink' => $active,
        'text-ink-muted hover:bg-hover hover:text-ink' => ! $active,
    ]) }}>
-    @if ($icon)
+    @if ($emoji)
+        <span class="flex size-[18px] shrink-0 items-center justify-center text-[15px] leading-none" aria-hidden="true">{{ $emoji }}</span>
+    @elseif ($icon)
         <x-icon :icon="$icon" @class(['size-[18px] shrink-0', 'text-ink' => $active, 'text-ink-subtle group-hover:text-ink-muted' => ! $active]) />
     @endif
     <span class="truncate">{{ $slot }}</span>

@@ -20,5 +20,6 @@ Route::view('/', 'landing')->name('home');
 Route::middleware('auth')->group(function (): void {
     Route::livewire('/dashboard', Dashboard::class)->name('dashboard');
     Route::livewire('/projects', Projects\Index::class)->name('projects.index');
+    Route::livewire('/projects/{project}', Projects\Show::class)->name('projects.show');
     Route::livewire('/settings', Settings\Profile::class)->name('settings.profile');
 });
