@@ -24,6 +24,14 @@
         --wb-accent: var(--color-primary-500);
         --wb-ring: rgb(143 107 74 / 0.35);
 
+        /* Chart series (ApexCharts, in order). Oak first, then Notion-like hues */
+        --wb-chart-1: #8f6b4a;
+        --wb-chart-2: #337ea9;
+        --wb-chart-3: #448361;
+        --wb-chart-4: #d9730d;
+        --wb-chart-5: #9065b0;
+        --wb-chart-6: #c14c8a;
+
         /* Brand mark */
         --wb-brand-tile: #d8b48e;
         --wb-brand-edge: #b98f66;
@@ -50,6 +58,13 @@
         --wb-active: rgb(255 255 255 / 0.085);
         --wb-accent: var(--color-primary-400);
         --wb-ring: rgb(185 151 111 / 0.4);
+
+        --wb-chart-1: #b9976f;
+        --wb-chart-2: #529cca;
+        --wb-chart-3: #4dab9a;
+        --wb-chart-4: #ffa344;
+        --wb-chart-5: #9a6dd7;
+        --wb-chart-6: #e255a1;
 
         --wb-brand-tile: #4b3429;
         --wb-brand-edge: #2e1f18;

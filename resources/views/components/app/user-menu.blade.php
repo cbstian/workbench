@@ -19,6 +19,10 @@
         <p class="truncate text-xs text-ink-muted">{{ $user->email }}</p>
     </div>
 
+    <div class="border-t border-line py-1">
+        <x-dropdown.items :href="route('settings.profile')" icon="cog-6-tooth" text="Ajustes" navigate />
+    </div>
+
     <div class="border-t border-line px-3 py-3">
         <p class="mb-2 text-xs font-medium text-ink-subtle">Tema</p>
         <x-theme-switch block />

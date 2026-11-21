@@ -17,6 +17,15 @@
 
 @plugin '@tailwindcss/forms';
 
+/*
+ * Desktop sidebar state (Notion-like collapse). <html data-sidebar="collapsed">
+ * is set before first paint by <x-app.sidebar-init /> and kept in sync by the
+ * Alpine store `sidebar` (resources/js/modules/sidebar.js).
+ * Usage: `md:sidebar-expanded:pl-60`, `md:sidebar-collapsed:-translate-x-full`.
+ */
+@custom-variant sidebar-collapsed (html[data-sidebar=collapsed] &);
+@custom-variant sidebar-expanded (html:not([data-sidebar=collapsed]) &);
+
 @source '../../vendor/tallstackui/tallstackui/**/*.php';
 @source '../views';
 @source '../../app';

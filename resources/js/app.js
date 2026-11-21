@@ -5,9 +5,13 @@
  * <tallstackui:script />, so only app-specific modules live here.
  * See docs/arquitectura/frontend.md.
  */
-import ApexCharts from 'apexcharts';
+import { registerSidebar } from './modules/sidebar';
+import { registerChart } from './modules/chart';
 
-window.ApexCharts = ApexCharts;
+document.addEventListener('alpine:init', () => {
+    registerSidebar(window.Alpine);
+    registerChart(window.Alpine);
+});
 
 /*
  * Let Vite process (hash and version) every image in resources/images

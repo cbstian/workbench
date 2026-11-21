@@ -4,6 +4,7 @@
     - Applies the stored/system theme before first paint (<x-theme.init />).
     - Loads self-hosted fonts (@fonts), TallStackUI, Livewire and Vite assets.
     - Keeps the `dark` class on <html> in sync through TallStackUI's darkTheme store.
+    - Optional `head` slot for layout-specific <head> content (e.g. sidebar state).
 
     Usage: <x-layouts::base title="Página">...</x-layouts::base>
 --}}
@@ -23,6 +24,7 @@
         <title>{{ filled($title) ? $title.' · '.config('app.name') : config('app.name') }}</title>
 
         <x-theme.init />
+        {{ $head ?? '' }}
         <x-meta.favicons />
 
         @fonts
