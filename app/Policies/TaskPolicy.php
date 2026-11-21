@@ -70,6 +70,28 @@ class TaskPolicy
     }
 
     /**
+     * Comment and attach files: whoever may act on the task (F-07).
+     */
+    public function collaborate(User $user, Task $task): bool
+    {
+        return $this->update($user, $task);
+    }
+
+    /**
+     * Delete anybody's comment or attachment: the super admin and the
+     * project's admins. Authors may always remove their own.
+     */
+    public function moderate(User $user, Task $task): bool
+    {
+        if (! $this->isReachable($task)) {
+            return false;
+        }
+
+        return $user->ownsWorkspace($task->project->workspace)
+            || ($user->isOnTeamOf($task->project) && $user->hasWorkspacePermission($task->workspace_id, Permission::TasksUpdateAny));
+    }
+
+    /**
      * Add subtasks: editing rights on a root task (RN-17).
      */
     public function addSubtask(User $user, Task $task): bool

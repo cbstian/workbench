@@ -32,7 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deleted_at
  * @property int|null $deleted_by_id
  */
-#[Fillable(['task_id', 'uploaded_by_id', 'disk', 'path', 'original_name', 'mime_type', 'size_bytes', 'checksum_sha256'])]
+#[Fillable(['uuid', 'task_id', 'uploaded_by_id', 'disk', 'path', 'original_name', 'mime_type', 'size_bytes', 'checksum_sha256'])]
 class TaskAttachment extends Model
 {
     /** @use HasFactory<TaskAttachmentFactory> */
@@ -53,6 +53,18 @@ class TaskAttachment extends Model
     protected function inheritedWorkspaceId(): ?int
     {
         return Task::withTrashed()->whereKey($this->task_id)->value('workspace_id');
+    }
+
+    /**
+     * Size for people: «850 KB», «2,4 MB».
+     */
+    public function humanSize(): string
+    {
+        return match (true) {
+            $this->size_bytes >= 1048576 => number_format($this->size_bytes / 1048576, 1, ',', '.').' MB',
+            $this->size_bytes >= 1024 => number_format($this->size_bytes / 1024, 0, ',', '.').' KB',
+            default => $this->size_bytes.' B',
+        };
     }
 
     /**

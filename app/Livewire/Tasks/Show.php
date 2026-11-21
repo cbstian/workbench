@@ -13,6 +13,7 @@ use App\Support\CurrentWorkspace;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use TallStackUi\Traits\Interactions;
 
@@ -80,6 +81,15 @@ class Show extends Component
     public function activities(): Collection
     {
         return $this->task->activities()->with('user:id,name')->latest('created_at')->latest('id')->limit(100)->get();
+    }
+
+    /**
+     * Comments and attachments change the history (child components).
+     */
+    #[On('task-activity-changed')]
+    public function refreshActivities(): void
+    {
+        unset($this->activities);
     }
 
     public function save(): void

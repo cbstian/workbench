@@ -97,8 +97,8 @@ class TaskActivity extends Model
             TaskActivityEvent::Moved => 'movió la tarea',
             TaskActivityEvent::CommentAdded => 'comentó',
             TaskActivityEvent::CommentDeleted => 'eliminó un comentario',
-            TaskActivityEvent::AttachmentAdded => 'adjuntó un archivo',
-            TaskActivityEvent::AttachmentDeleted => 'eliminó un adjunto',
+            TaskActivityEvent::AttachmentAdded => 'adjuntó «'.($metadata['file_name'] ?? 'un archivo').'»',
+            TaskActivityEvent::AttachmentDeleted => 'eliminó el adjunto «'.($metadata['file_name'] ?? '—').'»',
             TaskActivityEvent::Deleted => 'envió la tarea a la papelera',
             TaskActivityEvent::Restored => 'restauró la tarea',
         };

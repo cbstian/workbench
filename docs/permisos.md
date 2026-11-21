@@ -52,6 +52,9 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 - Crear: Super admin y equipo con `tasks.create`. Quien crea desde el equipo queda preseleccionado como asignado.
 - Editar, enviar a la papelera y agregar subtareas: Super admin y admin del Proyecto (`tasks.update-any`); el miembro solo en tareas asignadas a él o cuya tarea padre tiene asignada (`tasks.update-assigned`, RN-23).
 - Las tareas de un Proyecto en la papelera, y las subtareas de una tarea en la papelera, quedan ocultas.
+- Comentar y adjuntar (`collaborate`): quien puede editar la tarea (F-07). El resto del equipo ve comentarios y adjuntos y descarga los archivos.
+- Editar un comentario: solo su autor. Eliminar un comentario o adjunto: su autor, o el Super admin y los admins del Proyecto (`moderate`). Ambos van a la papelera.
+- Los adjuntos se guardan en el disco privado `local` (`workspaces/{uuid}/tasks/{uuid}/{uuid}`, hasta 10 MB) y se descargan por `attachments.show`, que exige poder ver la tarea; un adjunto en la papelera no se sirve.
 
 ## Uso básico del paquete
 

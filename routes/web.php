@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TaskAttachmentController;
 use App\Http\Middleware\EnsureCurrentWorkspace;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Livewire\Clients;
@@ -40,6 +41,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
         Route::livewire('/projects/{project}', Projects\Show::class)->name('projects.show');
         Route::livewire('/projects/{project}/settings', Projects\Settings::class)->name('projects.settings');
         Route::livewire('/tasks/{task}', Tasks\Show::class)->name('tasks.show');
+        Route::get('/attachments/{attachment}', [TaskAttachmentController::class, 'show'])->name('attachments.show');
         Route::livewire('/clients', Clients\Index::class)->name('clients.index');
         Route::livewire('/users', Users\Index::class)->name('users.index');
         Route::livewire('/trash', Trash\Index::class)->name('trash.index');
