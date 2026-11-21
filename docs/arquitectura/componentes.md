@@ -44,8 +44,8 @@ Reglas:
 | --- | --- |
 | `<x-app.sidebar>` | Barra lateral colapsable (escritorio) y off-canvas (móvil), dibujada desde `config/navigation.php` |
 | `<x-app.sidebar-init>` | Script en `<head>` que aplica el estado colapsado antes de pintar. Solo en `layouts::app` |
-| `<x-app.nav-group>` | Grupo de ítems con título opcional; filtra por ruta existente y `can`. Props: `label`, `items` |
-| `<x-app.nav-item>` | Ítem de navegación. Props: `href`, `icon` (Heroicons), `active` |
+| `<x-app.nav-group>` | Grupo contraíble de ítems; filtra por ruta existente y `can`; dibuja sublistas (`children`). Props: `label`, `items` |
+| `<x-app.nav-item>` | Ítem de navegación. Props: `href`, `icon` (Heroicons) o `emoji`, `active` |
 | `<x-app.topbar>` | Barra superior: botón de sidebar, título, tema y menú de usuario. Prop: `title` |
 | `<x-app.user-menu>` | Dropdown con nombre/correo, Ajustes, selector de tema y cerrar sesión |
 | `<x-app.avatar>` | Avatar de iniciales. Prop: `name` |

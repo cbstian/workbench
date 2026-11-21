@@ -46,6 +46,15 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 
 - `active`: patrón (o lista) de nombres de ruta que marcan el ítem; por defecto, la misma `route`.
 - `can`: habilidad opcional; si el usuario no la tiene, el ítem no aparece. Un grupo sin ítems visibles no muestra su título.
+- `children`: nombre de un componente Livewire que dibuja la sublista del ítem (ej. `navigation.project-links` lista cada proyecto bajo «Proyectos»). El ítem muestra un chevron para expandir/contraer.
+
+### Grupos e ítems contraíbles
+
+- Un grupo con título se contrae haciendo clic en su título (el chevron aparece al pasar el mouse), como en Notion.
+- Un ítem con `children` se contrae con su chevron; la sublista va indentada con una guía vertical.
+- El estado abierto/cerrado se recuerda por navegador con `$persist` de Alpine (claves `wb-nav-group-<título>` y `wb-nav-item-<ruta>`).
+- Las sublistas son componentes Livewire en `app/Livewire/Navigation/` y se refrescan con un evento. Ej.: tras crear o renombrar un proyecto, `$this->dispatch('projects-changed')` actualiza el sidebar sin recargar.
+- `ProjectLinks` muestra hasta 30 proyectos ordenados por nombre y luego «Ver todos». Cuando existan permisos por proyecto, la consulta debe filtrar por los proyectos del usuario.
 - Un ítem cuya ruta aún no existe se omite (útil mientras se construye un módulo).
 
 ## 2. Anatomía de una página

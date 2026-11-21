@@ -9,6 +9,7 @@ Read `docs/arquitectura/interfaz.md` before adding a page, a module, a form or a
 
 - Panel pages are Livewire full-page components rendered in `layouts::app` (collapsible Notion-like sidebar + topbar). Never build a new shell per module.
 - Sidebar links come from `config/navigation.php` (`groups` / `footer`, optional `can` ability). Register new modules there; do not edit `components/app/sidebar.blade.php`.
+- Labelled groups and items collapse (state kept with Alpine `$persist`). A sub-list under an item is a Livewire component in `app/Livewire/Navigation/` set as the item's `children`; refresh it with an event (e.g. dispatch `projects-changed` after saving a project).
 - Every page view's root is `<x-ui.page>` with `width="full"` (default: lists, boards, dashboards), `wide` (detail pages) or `narrow` (forms, settings, wiki). Content uses the full width by default.
 - Page anatomy: `<x-ui.page-header>` (title, description, icon, breadcrumbs, `actions` slot) → `<x-ui.section>` blocks → `<x-ui.empty-state>` for empty data.
 
