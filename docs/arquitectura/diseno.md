@@ -40,7 +40,7 @@ Variables CSS con valor claro (`:root`) y oscuro (`.dark`), expuestas como utili
 | `accent` | `primary-500` | `primary-400` | Acento puntual |
 | `ring` | roble 35 % | roble 40 % | Foco y selección de texto |
 
-Además: `--wb-brand-*` (colores del isotipo) y `--wb-glow-*`, `--wb-grid-dot` (fondo de la landing).
+Además: `--wb-brand-*` (colores del isotipo), `--wb-glow-*`, `--wb-grid-dot` (fondo de la landing) y `--wb-chart-1` … `--wb-chart-6` (series de gráficos, en orden: roble, azul, verde, naranja, morado, rosa; versión clara y oscura). Los lee `resources/js/modules/chart.js`, no hay utilidad de Tailwind para ellos.
 
 **Agregar un color**: primero preguntarse si es un rol nuevo (token) o un tono nuevo (escala). Un rol nuevo se agrega en `tokens.css` con ambos valores y su línea en `@theme inline`; luego se documenta en esta tabla.
 
@@ -67,7 +67,7 @@ Además: `--wb-brand-*` (colores del isotipo) y `--wb-glow-*`, `--wb-grid-dot` (
 
 - Colores: por las escalas de `palette.css` (no hace falta tocar componentes).
 - Íconos: Heroicons en estilo `outline` (`config/tallstackui.php`).
-- Ajustes de clases que los tokens no alcanzan: `App\Providers\TallStackUiServiceProvider` (soft customization). Hoy solo neutraliza los colores del theme switch. Toda personalización nueva del kit va en ese provider, con un método por componente.
+- Ajustes de clases que los tokens no alcanzan: `App\Providers\TallStackUiServiceProvider` (soft customization). Hoy: tarjetas planas (`x-card` con borde fino y sin sombra) y colores neutros del theme switch. Toda personalización nueva del kit va en ese provider, con un método por componente.
 
 ## Movimiento
 

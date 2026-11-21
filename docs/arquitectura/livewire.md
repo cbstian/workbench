@@ -38,11 +38,13 @@ Genera:
 5. **Entrada del usuario siempre validada**: valores que terminan en SQL (orden, tamaño de página) se comparan contra una lista permitida (ver `Projects\Index::SORTABLE_COLUMNS` y `PAGE_SIZES`).
 6. **Estado en la URL** solo cuando aporta (búsqueda compartible con `#[Url]`).
 7. **Lógica reutilizable fuera del componente**: scopes del modelo (ej. `Project::search()`), acciones o servicios. El componente orquesta.
-8. Los componentes se agrupan por dominio, igual que las vistas: `app/Livewire/Projects/Index.php` ↔ `resources/views/livewire/projects/index.blade.php`.
+8. **Formularios en Form objects** (`app/Livewire/Forms/`, `php artisan livewire:form`): campos, reglas y guardado; el componente solo orquesta y avisa con toast. Ver [`interfaz.md`](interfaz.md#3-formularios).
+9. Los componentes se agrupan por dominio, igual que las vistas: `app/Livewire/Projects/Index.php` ↔ `resources/views/livewire/projects/index.blade.php`.
 
 ## Componentes actuales
 
 | Clase | Ruta | Qué hace |
 | --- | --- | --- |
-| `App\Livewire\Dashboard` | `GET /dashboard` (`dashboard`) | Saludo, cifras de proyectos y actividad reciente |
+| `App\Livewire\Dashboard` | `GET /dashboard` (`dashboard`) | Saludo, cifras, gráficos de proyectos (ApexCharts) y actividad reciente |
 | `App\Livewire\Projects\Index` | `GET /projects` (`projects.index`) | Tabla de proyectos con búsqueda, orden y paginación (`x-table` de TallStackUI) |
+| `App\Livewire\Settings\Profile` | `GET /settings` (`settings.profile`) | Perfil y contraseña (Form objects `ProfileForm`, `PasswordForm`); página de referencia de formularios |

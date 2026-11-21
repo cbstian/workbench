@@ -42,19 +42,15 @@ Reglas:
 
 | Componente | Descripción |
 | --- | --- |
-| `<x-app.sidebar>` | Barra lateral fija (escritorio) y off-canvas (móvil). Las secciones se agregan aquí |
+| `<x-app.sidebar>` | Barra lateral colapsable (escritorio) y off-canvas (móvil), dibujada desde `config/navigation.php` |
+| `<x-app.sidebar-init>` | Script en `<head>` que aplica el estado colapsado antes de pintar. Solo en `layouts::app` |
+| `<x-app.nav-group>` | Grupo de ítems con título opcional; filtra por ruta existente y `can`. Props: `label`, `items` |
 | `<x-app.nav-item>` | Ítem de navegación. Props: `href`, `icon` (Heroicons), `active` |
-| `<x-app.topbar>` | Barra superior: botón de menú móvil, título, tema y menú de usuario. Prop: `title` |
-| `<x-app.user-menu>` | Dropdown con nombre/correo, selector de tema y cerrar sesión |
+| `<x-app.topbar>` | Barra superior: botón de sidebar, título, tema y menú de usuario. Prop: `title` |
+| `<x-app.user-menu>` | Dropdown con nombre/correo, Ajustes, selector de tema y cerrar sesión |
 | `<x-app.avatar>` | Avatar de iniciales. Prop: `name` |
 
-Agregar una sección al menú:
-
-```blade
-<x-app.nav-item :href="route('clients.index')" icon="building-office" :active="request()->routeIs('clients.*')">
-    Clientes
-</x-app.nav-item>
-```
+Agregar una sección al menú: **no se edita el sidebar**, se agrega una entrada en `config/navigation.php` (ver [`interfaz.md`](interfaz.md#navegación-confignavigationphp)).
 
 ### Autenticación (`components/auth`)
 
@@ -67,9 +63,23 @@ Agregar una sección al menú:
 
 | Componente | Descripción | Ejemplo |
 | --- | --- | --- |
-| `<x-ui.page-header>` | Título grande de página, bajada opcional y slot `actions` | `<x-ui.page-header title="Proyectos" description="…"><x-slot:actions>…</x-slot:actions></x-ui.page-header>` |
+| `<x-ui.page>` | Raíz de toda página: ancho (`full`, `wide`, `narrow`) y ritmo vertical | `<x-ui.page width="narrow">…</x-ui.page>` |
+| `<x-ui.page-header>` | Título grande, `description`, `icon` (emoji), `breadcrumbs` y slot `actions` | `<x-ui.page-header title="Proyectos" description="…"><x-slot:actions>…</x-slot:actions></x-ui.page-header>` |
+| `<x-ui.section>` | Bloque con título chico, `description` y slot `actions` | `<x-ui.section title="Actividad reciente">…</x-ui.section>` |
+| `<x-ui.empty-state>` | Estado vacío. Props: `icon`, `title`, `description`; slot para la acción | `<x-ui.empty-state title="Aún no hay proyectos" />` |
 | `<x-ui.stat>` | Tarjeta de cifra. Props: `label`, `value`, `hint` | `<x-ui.stat label="Proyectos" :value="36" />` |
+| `<x-ui.chart>` | Gráfico de ApexCharts con los colores del tema. Props: `options`, `height` | `<x-ui.chart :options="$this->visibilityChart" height="260" />` |
+
+### Formularios (`components/ui/form-*`)
+
+| Componente | Descripción |
+| --- | --- |
+| `<x-ui.form-section>` | Título y descripción a la izquierda, campos a la derecha. Slot `actions` |
+| `<x-ui.form-grid>` | Rejilla responsiva de campos. Prop: `cols` (1, 2, 3) |
+| `<x-ui.form-actions>` | Fila de botones alineada a la derecha; slot `status` |
+
+Uso completo y reglas en [`interfaz.md`](interfaz.md#3-formularios).
 
 ## Componentes de TallStackUI en uso
 
-`x-input`, `x-password`, `x-checkbox`, `x-button`, `x-dropdown` / `x-dropdown.items`, `x-theme-switch`, `x-table`, `x-badge`, `x-icon`.
+`x-input`, `x-password`, `x-checkbox`, `x-button`, `x-dropdown` / `x-dropdown.items`, `x-theme-switch`, `x-table`, `x-badge`, `x-icon`, `x-card`, `x-kbd`, `x-toast`, `x-dialog`.
