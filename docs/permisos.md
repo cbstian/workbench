@@ -46,6 +46,13 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 - **Usuarios** (`members.create`): ve los equipos de sus Proyectos y crea miembros nuevos con acceso a uno o más de sus Proyectos. `WorkspaceUserForm` fuerza el rol `member` y valida que los Proyectos sean suyos; no agrega usuarios existentes ni edita, desactiva o elimina usuarios (A-14, A-21).
 - **Papelera** (`trash.project`): ve y restaura lo borrado dentro de sus Proyectos; Clientes, Proyectos y etiquetas de wiki quedan para el Super admin.
 
+### Tareas (`TaskPolicy`)
+
+- Ver: Super admin y equipo del Proyecto con `tasks.view` (admin y miembro). El usuario cliente no ve nada.
+- Crear: Super admin y equipo con `tasks.create`. Quien crea desde el equipo queda preseleccionado como asignado.
+- Editar, enviar a la papelera y agregar subtareas: Super admin y admin del Proyecto (`tasks.update-any`); el miembro solo en tareas asignadas a él o cuya tarea padre tiene asignada (`tasks.update-assigned`, RN-23).
+- Las tareas de un Proyecto en la papelera, y las subtareas de una tarea en la papelera, quedan ocultas.
+
 ## Uso básico del paquete
 
 ```php

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Trash;
 
+use App\Enums\TaskActivityEvent;
 use App\Models\Client;
 use App\Models\Page;
 use App\Models\PageFile;
@@ -9,6 +10,7 @@ use App\Models\Project;
 use App\Models\ProjectPriority;
 use App\Models\ProjectStatus;
 use App\Models\Task;
+use App\Models\TaskActivity;
 use App\Models\TaskAttachment;
 use App\Models\TaskComment;
 use App\Models\TaskLabel;
@@ -18,6 +20,7 @@ use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -83,6 +86,10 @@ class RestoreTrashItem
 
             $model->setAttribute($column, mb_substr($model->getAttribute($column), 0, 64 - mb_strlen(self::RESTORED_SUFFIX)).self::RESTORED_SUFFIX);
             DB::transaction(fn () => $model->restore());
+        }
+
+        if ($model instanceof Task) {
+            TaskActivity::record($model, Auth::user(), TaskActivityEvent::Restored);
         }
 
         return $model;

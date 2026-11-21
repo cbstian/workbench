@@ -48,6 +48,62 @@ class TaskActivity extends Model
         ];
     }
 
+    /**
+     * Append an entry to the history of a task.
+     *
+     * @param  array<string, array{old: mixed, new: mixed}>|null  $changes
+     * @param  array<string, mixed>|null  $metadata
+     */
+    public static function record(Task $task, ?User $user, TaskActivityEvent $event, ?array $changes = null, ?array $metadata = null): self
+    {
+        return self::query()->create([
+            'task_id' => $task->id,
+            'user_id' => $user?->id,
+            'event' => $event,
+            'changes' => $changes,
+            'metadata' => $metadata,
+        ]);
+    }
+
+    /**
+     * The change in Spanish, for the task history (without the author).
+     */
+    public function description(): string
+    {
+        $changes = $this->getAttribute('changes') ?? [];
+        $metadata = $this->metadata ?? [];
+        $name = fn (string $field, string $side): string => (string) data_get($changes, "{$field}.{$side}.name", data_get($changes, "{$field}.{$side}", '—'));
+
+        return match ($this->event) {
+            TaskActivityEvent::Created => 'creó la tarea',
+            TaskActivityEvent::Updated => 'cambió '.collect(array_keys($changes))
+                ->map(fn (string $field): string => match ($field) {
+                    'name' => 'el nombre',
+                    'description' => 'la descripción',
+                    'starts_on' => 'la fecha de inicio',
+                    'ends_on' => 'la fecha de término',
+                    default => $field,
+                })->join(', ', ' y '),
+            TaskActivityEvent::StatusChanged => "cambió el estado de «{$name('status', 'old')}» a «{$name('status', 'new')}»"
+                .(($metadata['reason'] ?? null) === 'status_deleted' ? ' (se eliminó el estado)' : ''),
+            TaskActivityEvent::PriorityChanged => "cambió la prioridad de «{$name('priority', 'old')}» a «{$name('priority', 'new')}»"
+                .(($metadata['reason'] ?? null) === 'priority_deleted' ? ' (se eliminó la prioridad)' : ''),
+            TaskActivityEvent::AssigneeAdded => 'asignó a '.($metadata['user_name'] ?? 'un usuario'),
+            TaskActivityEvent::AssigneeRemoved => 'quitó a '.($metadata['user_name'] ?? 'un usuario'),
+            TaskActivityEvent::LabelAdded => 'agregó la etiqueta «'.($metadata['label_name'] ?? '—').'»',
+            TaskActivityEvent::LabelRemoved => 'quitó la etiqueta «'.($metadata['label_name'] ?? '—').'»',
+            TaskActivityEvent::SubtaskAdded => 'agregó la subtarea «'.($metadata['subtask_name'] ?? '—').'»',
+            TaskActivityEvent::SubtaskRemoved => 'eliminó la subtarea «'.($metadata['subtask_name'] ?? '—').'»',
+            TaskActivityEvent::Moved => 'movió la tarea',
+            TaskActivityEvent::CommentAdded => 'comentó',
+            TaskActivityEvent::CommentDeleted => 'eliminó un comentario',
+            TaskActivityEvent::AttachmentAdded => 'adjuntó un archivo',
+            TaskActivityEvent::AttachmentDeleted => 'eliminó un adjunto',
+            TaskActivityEvent::Deleted => 'envió la tarea a la papelera',
+            TaskActivityEvent::Restored => 'restauró la tarea',
+        };
+    }
+
     protected function inheritedWorkspaceId(): ?int
     {
         return Task::withTrashed()->whereKey($this->task_id)->value('workspace_id');

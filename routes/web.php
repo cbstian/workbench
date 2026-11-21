@@ -7,6 +7,7 @@ use App\Livewire\Dashboard;
 use App\Livewire\Projects;
 use App\Livewire\Roles;
 use App\Livewire\Settings;
+use App\Livewire\Tasks;
 use App\Livewire\Trash;
 use App\Livewire\Users;
 use App\Livewire\Workspaces;
@@ -38,6 +39,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
         Route::livewire('/projects', Projects\Index::class)->name('projects.index');
         Route::livewire('/projects/{project}', Projects\Show::class)->name('projects.show');
         Route::livewire('/projects/{project}/settings', Projects\Settings::class)->name('projects.settings');
+        Route::livewire('/tasks/{task}', Tasks\Show::class)->name('tasks.show');
         Route::livewire('/clients', Clients\Index::class)->name('clients.index');
         Route::livewire('/users', Users\Index::class)->name('users.index');
         Route::livewire('/trash', Trash\Index::class)->name('trash.index');
