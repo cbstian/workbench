@@ -22,6 +22,8 @@ class TallStackUiServiceProvider extends ServiceProvider
     {
         $this->customizeCard();
         $this->customizeSlide();
+        $this->customizeDialog();
+        $this->customizeModal();
         $this->customizeThemeSwitch();
     }
 
@@ -58,6 +60,41 @@ class TallStackUiServiceProvider extends ServiceProvider
                 'body' => 'soft-scrollbar grow overflow-y-auto px-6 py-5 text-ink',
                 'header.divider' => 'border-b border-b-line pb-4',
                 'footer.wrapper' => 'border-t border-t-line px-4 pt-4',
+            ]);
+    }
+
+    /**
+     * Confirmation dialogs: same backdrop and raised panel as the slide.
+     */
+    private function customizeDialog(): void
+    {
+        TallStackUi::customize()
+            ->dialog()
+            ->block([
+                'background' => 'fixed inset-0 bg-overlay backdrop-blur-[2px] transform transition-opacity',
+                'wrapper.third' => 'relative w-full max-w-sm transform overflow-hidden rounded-xl bg-elevated p-4 text-left shadow-2xl ring-1 ring-edge transition-all sm:my-8',
+                'text.title' => 'text-lg font-semibold leading-6 text-ink',
+                'text.description.text' => 'text-sm text-ink-muted',
+                'buttons.close.icon' => 'h-5 w-5 cursor-pointer text-ink-subtle hover:text-ink',
+            ]);
+    }
+
+    /**
+     * Modals: same backdrop and raised panel as the slide.
+     */
+    private function customizeModal(): void
+    {
+        TallStackUi::customize()
+            ->modal()
+            ->block([
+                'wrapper.first' => 'fixed inset-0 bg-overlay backdrop-blur-[2px] transform transition-opacity',
+                'wrapper.fourth' => 'relative flex w-full transform flex-col rounded-t-xl bg-elevated text-left shadow-2xl ring-1 ring-edge transition-all sm:rounded-xl',
+                'title.wrapper' => 'flex items-center justify-between border-b border-b-line px-4 py-2.5',
+                'title.text' => 'whitespace-normal text-base font-semibold text-ink',
+                'title.close' => 'h-5 w-5 cursor-pointer text-ink-subtle hover:text-ink',
+                'body' => 'grow rounded-b-xl px-4 py-5 text-ink',
+                'footer.wrapper' => 'rounded-b-xl border-t border-t-line p-4 text-ink',
+                'footer.scrollable' => 'sticky bottom-0 z-10 bg-elevated',
             ]);
     }
 

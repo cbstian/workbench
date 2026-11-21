@@ -39,7 +39,7 @@ Variables CSS con valor claro (`:root`) y oscuro (`.dark`), expuestas como utili
 | `hover` / `active` | negro 6 % / 9 % | blanco 5,5 % / 8,5 % | Fondos de hover y de ítem activo |
 | `accent` | `primary-500` | `primary-400` | Acento puntual |
 | `ring` | roble 35 % | roble 40 % | Foco y selección de texto |
-| `overlay` (`bg-overlay`) | negro cálido 45 % | negro 62 % | Velo detrás de paneles laterales y modales |
+| `overlay` (`bg-overlay`) | negro cálido 45 % | negro 62 % | Velo detrás de paneles laterales, diálogos y modales |
 | `elevated` (`bg-elevated`) | `#ffffff` | `#2b2b29` | Fondo de paneles que se superponen a la página |
 | `edge` (`ring-edge`) | `#d3d0ca` | `#4a4945` | Borde visible de esos paneles |
 | `--wb-scrollbar-thumb` / `-hover` | negro 18 % / 32 % | blanco 14 % / 26 % | Barra de scroll sutil (utilidad `scrollbar-subtle`, sin clase de Tailwind propia) |
@@ -69,9 +69,9 @@ Además: `--wb-brand-*` (colores del isotipo), `--wb-glow-*`, `--wb-grid-dot` (f
 
 ## Personalización de TallStackUI
 
-- Colores: por las escalas de `palette.css` (no hace falta tocar componentes).
+- Colores: por las escalas de `palette.css` (no hace falta tocar componentes). Colores por componente publicados en `app/View/Components/TallStackUi/Colors` (hoy: el botón «Cancelar» de los diálogos es neutro, `secondary`, para no confundirse con la acción destructiva).
 - Íconos: Heroicons en estilo `outline` (`config/tallstackui.php`).
-- Ajustes de clases que los tokens no alcanzan: `App\Providers\TallStackUiServiceProvider` (soft customization). Hoy: tarjetas planas (`x-card` con borde fino y sin sombra), paneles laterales (`x-slide`: velo `overlay` con leve desenfoque, panel `elevated` con borde `edge` y sombra marcada) y colores neutros del theme switch. Toda personalización nueva del kit va en ese provider, con un método por componente.
+- Ajustes de clases que los tokens no alcanzan: `App\Providers\TallStackUiServiceProvider` (soft customization). Hoy: tarjetas planas (`x-card` con borde fino y sin sombra), paneles superpuestos (`x-slide`, `x-dialog` y `x-modal`: velo `overlay` con leve desenfoque, panel `elevated` con borde `edge` y sombra marcada) y colores neutros del theme switch. Toda personalización nueva del kit va en ese provider, con un método por componente.
 
 ## Movimiento
 
