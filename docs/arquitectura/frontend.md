@@ -25,7 +25,8 @@ resources/
 │   ├── base/
 │   │   └── base.css             # Estilos globales de elementos (html, body, foco, selección)
 │   └── components/
-│       └── landing.css          # CSS que no cabe en utilidades (animación de la landing)
+│       ├── landing.css          # CSS que no cabe en utilidades (animación de la landing)
+│       └── scrollbar.css        # Utilidad `scrollbar-subtle` (scroll fino que aparece al pasar el mouse)
 ├── js/
 │   ├── app.js                   # Punto de entrada JS: registra los módulos en Alpine + imágenes para Vite
 │   └── modules/

@@ -23,6 +23,8 @@
         --wb-active: rgb(55 53 47 / 0.09);
         --wb-accent: var(--color-primary-500);
         --wb-ring: rgb(143 107 74 / 0.35);
+        --wb-scrollbar-thumb: rgb(55 53 47 / 0.18);
+        --wb-scrollbar-thumb-hover: rgb(55 53 47 / 0.32);
 
         /* Chart series (ApexCharts, in order). Oak first, then Notion-like hues */
         --wb-chart-1: #8f6b4a;
@@ -58,6 +60,8 @@
         --wb-active: rgb(255 255 255 / 0.085);
         --wb-accent: var(--color-primary-400);
         --wb-ring: rgb(185 151 111 / 0.4);
+        --wb-scrollbar-thumb: rgb(255 255 255 / 0.14);
+        --wb-scrollbar-thumb-hover: rgb(255 255 255 / 0.26);
 
         --wb-chart-1: #b9976f;
         --wb-chart-2: #529cca;

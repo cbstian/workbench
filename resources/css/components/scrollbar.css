@@ -1,0 +1,46 @@
+/*
+ * Subtle, Notion-like scrollbar: thin, no track, and the thumb only shows
+ * while the pointer is over the scroll area (or it has keyboard focus).
+ * Colors come from the --wb-scrollbar-* tokens, so it follows the theme.
+ *
+ * Usage: <nav class="overflow-y-auto scrollbar-subtle">
+ */
+@utility scrollbar-subtle {
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 150ms ease-out;
+
+    &:hover,
+    &:focus-within {
+        scrollbar-color: var(--wb-scrollbar-thumb) transparent;
+    }
+
+    /* Browsers without standard scrollbar-color (older Safari) */
+    @supports not (scrollbar-color: auto) {
+        &::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            border: 3px solid transparent;
+            border-radius: 9999px;
+            background-clip: padding-box;
+            background-color: transparent;
+        }
+
+        &:hover::-webkit-scrollbar-thumb,
+        &:focus-within::-webkit-scrollbar-thumb {
+            background-color: var(--wb-scrollbar-thumb);
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background-color: var(--wb-scrollbar-thumb-hover);
+        }
+    }
+}

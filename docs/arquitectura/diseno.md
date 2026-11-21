@@ -39,6 +39,7 @@ Variables CSS con valor claro (`:root`) y oscuro (`.dark`), expuestas como utili
 | `hover` / `active` | negro 6 % / 9 % | blanco 5,5 % / 8,5 % | Fondos de hover y de ítem activo |
 | `accent` | `primary-500` | `primary-400` | Acento puntual |
 | `ring` | roble 35 % | roble 40 % | Foco y selección de texto |
+| `--wb-scrollbar-thumb` / `-hover` | negro 18 % / 32 % | blanco 14 % / 26 % | Barra de scroll sutil (utilidad `scrollbar-subtle`, sin clase de Tailwind propia) |
 
 Además: `--wb-brand-*` (colores del isotipo), `--wb-glow-*`, `--wb-grid-dot` (fondo de la landing) y `--wb-chart-1` … `--wb-chart-6` (series de gráficos, en orden: roble, azul, verde, naranja, morado, rosa; versión clara y oscura). Los lee `resources/js/modules/chart.js`, no hay utilidad de Tailwind para ellos.
 
