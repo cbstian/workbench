@@ -3,6 +3,8 @@
 namespace App\Livewire\Forms;
 
 use App\Actions\Projects\CreateProject;
+use App\Actions\Projects\SetProjectPause;
+use App\Enums\ProjectPriorityLevel;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\User;
@@ -30,6 +32,12 @@ class ProjectForm extends Form
 
     public bool $is_visible_to_client = false;
 
+    public string $priority = 'none';
+
+    public ?string $due_on = null;
+
+    public bool $is_paused = false;
+
     /**
      * Team of a new project (admins and members of the workspace).
      *
@@ -51,6 +59,9 @@ class ProjectForm extends Form
         $this->icon = $project->icon;
         $this->client_id = $project->client_id;
         $this->is_visible_to_client = $project->is_visible_to_client;
+        $this->priority = $project->priority->value;
+        $this->due_on = $project->due_on?->format('Y-m-d');
+        $this->is_paused = $project->isPaused();
     }
 
     /**
@@ -64,6 +75,9 @@ class ProjectForm extends Form
             'icon' => ['nullable', 'string', 'max:32'],
             'client_id' => ['nullable', 'integer', Rule::exists(Client::class, 'id')->where('workspace_id', $this->workspace?->id)->whereNull('deleted_at')],
             'is_visible_to_client' => ['boolean'],
+            'priority' => ['required', Rule::enum(ProjectPriorityLevel::class)],
+            'due_on' => ['nullable', 'date'],
+            'is_paused' => ['boolean'],
             'team_ids' => ['array'],
             'team_ids.*' => ['integer', Rule::exists('workspace_user', 'user_id')->where('workspace_id', $this->workspace?->id)->whereIn('role', ['admin', 'member'])],
         ];
@@ -80,6 +94,9 @@ class ProjectForm extends Form
             'icon' => 'icono',
             'client_id' => 'cliente',
             'is_visible_to_client' => 'visible para el cliente',
+            'priority' => 'prioridad',
+            'due_on' => 'fecha de término',
+            'is_paused' => 'en pausa',
             'team_ids' => 'equipo',
             'team_ids.*' => 'integrante',
         ];
@@ -95,14 +112,18 @@ class ProjectForm extends Form
             'icon' => $validated['icon'],
             'client_id' => $validated['client_id'],
             'is_visible_to_client' => $validated['is_visible_to_client'],
+            'priority' => $validated['priority'],
+            'due_on' => $validated['due_on'] ?: null,
         ], array_map('intval', $validated['team_ids']));
 
-        $this->reset('project', 'name', 'description', 'icon', 'client_id', 'is_visible_to_client', 'team_ids');
+        app(SetProjectPause::class)->handle($project, $creator, (bool) $validated['is_paused']);
+
+        $this->reset('project', 'name', 'description', 'icon', 'client_id', 'is_visible_to_client', 'priority', 'due_on', 'is_paused', 'team_ids');
 
         return $project;
     }
 
-    public function update(): void
+    public function update(User $actor): void
     {
         $validated = $this->validate();
 
@@ -112,6 +133,10 @@ class ProjectForm extends Form
             'icon' => $validated['icon'],
             'client_id' => $validated['client_id'],
             'is_visible_to_client' => $validated['is_visible_to_client'],
+            'priority' => $validated['priority'],
+            'due_on' => $validated['due_on'] ?: null,
         ]);
+
+        app(SetProjectPause::class)->handle($this->project, $actor, (bool) $validated['is_paused']);
     }
 }

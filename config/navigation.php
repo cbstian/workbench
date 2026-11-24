@@ -31,6 +31,7 @@ return [
             'label' => null,
             'items' => [
                 ['label' => 'Inicio', 'route' => 'dashboard', 'icon' => 'home'],
+                ['label' => 'Pizarra', 'route' => 'board.index', 'icon' => 'view-columns', 'can' => 'view-projects'],
             ],
         ],
         [

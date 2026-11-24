@@ -83,7 +83,7 @@ class Settings extends Component
     {
         $this->authorize('update', $this->project);
 
-        $this->form->update();
+        $this->form->update(auth()->user());
 
         $this->dispatch('projects-changed');
         $this->toast()->success('Proyecto actualizado')->send();

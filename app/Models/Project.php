@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectPriorityLevel;
 use App\Models\Concerns\HasPublicUuid;
 use App\Models\Concerns\TracksDeleter;
 use Database\Factories\ProjectFactory;
@@ -28,16 +29,41 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string|null $description
  * @property string|null $icon
+ * @property ProjectPriorityLevel $priority
+ * @property Carbon|null $due_on
+ * @property Carbon|null $paused_at
+ * @property int|null $paused_by_id
+ * @property int $board_position
  * @property bool $is_visible_to_client
  * @property int $created_by_id
  * @property Carbon|null $deleted_at
  * @property int|null $deleted_by_id
  */
-#[Fillable(['workspace_id', 'client_id', 'name', 'description', 'icon', 'is_visible_to_client', 'created_by_id'])]
+#[Fillable(['workspace_id', 'client_id', 'name', 'description', 'icon', 'is_visible_to_client', 'priority', 'due_on', 'created_by_id'])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
     use HasFactory, HasPublicUuid, SoftDeletes, TracksDeleter;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'priority' => 'none',
+    ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Project $project): void {
+            if ($project->board_position === null) {
+                $max = static::withTrashed()
+                    ->where('workspace_id', $project->workspace_id)
+                    ->max('board_position');
+
+                $project->board_position = ((int) $max) + 1024;
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -48,7 +74,31 @@ class Project extends Model
     {
         return [
             'is_visible_to_client' => 'boolean',
+            'priority' => ProjectPriorityLevel::class,
+            'due_on' => 'date',
+            'paused_at' => 'datetime',
+            'board_position' => 'integer',
         ];
+    }
+
+    /**
+     * Whether the project is paused. Pausing is reversible and is not archiving.
+     */
+    public function isPaused(): bool
+    {
+        return $this->paused_at !== null;
+    }
+
+    /**
+     * A project is overdue when its due date is before today and it is not paused.
+     *
+     * Today follows the application timezone (America/Santiago).
+     */
+    public function isOverdue(): bool
+    {
+        return $this->due_on !== null
+            && ! $this->isPaused()
+            && $this->due_on->toDateString() < today()->toDateString();
     }
 
     /**
@@ -160,6 +210,36 @@ class Project extends Model
     }
 
     /**
+     * Notes on the workspace board for this project.
+     *
+     * @return HasMany<BoardEntry, $this>
+     */
+    public function boardEntries(): HasMany
+    {
+        return $this->hasMany(BoardEntry::class);
+    }
+
+    /**
+     * Users who hid this project on their own board.
+     *
+     * @return HasMany<BoardProjectHide, $this>
+     */
+    public function boardHides(): HasMany
+    {
+        return $this->hasMany(BoardProjectHide::class);
+    }
+
+    /**
+     * User who paused the project, when it is paused.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function pauser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'paused_by_id');
+    }
+
+    /**
      * Projects of the workspace the user may open: all of them for its super
      * admin, only the assigned ones for admins and members (RN-21), none for
      * client users (RN-04).
@@ -178,6 +258,19 @@ class Project extends Model
     /**
      * Filter projects whose name or description contains the given term.
      *
+     * @param  Builder<Project>  $query
+     */
+    /**
+     * Shared board order: position, then name.
+     *
+     * @param  Builder<Project>  $query
+     */
+    public function scopeOnBoard(Builder $query): void
+    {
+        $query->orderBy('board_position')->orderBy('name');
+    }
+
+    /**
      * @param  Builder<Project>  $query
      */
     public function scopeSearch(Builder $query, ?string $term): void

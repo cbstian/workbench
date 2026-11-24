@@ -20,4 +20,16 @@
         <x-toggle label="Visible para el cliente" wire:model="form.is_visible_to_client" />
         <p class="mt-1 text-xs text-ink-subtle">Se registra; por ahora el usuario cliente no ve nada.</p>
     </div>
+
+    <x-select.styled label="Prioridad" wire:model="form.priority"
+                     :options="\App\Enums\ProjectPriorityLevel::options()"
+                     hint="Comparable entre proyectos. No es la prioridad de las tareas." />
+
+    <x-input label="Término" type="date" wire:model="form.due_on"
+             hint="Si ya pasó y el proyecto no está en pausa, queda vencido en la pizarra." />
+
+    <div class="sm:col-span-2">
+        <x-toggle label="En pausa" wire:model="form.is_paused" />
+        <p class="mt-1 text-xs text-ink-subtle">Se puede reanudar. No archiva ni envía a la papelera. En la pizarra la fila queda rayada.</p>
+    </div>
 </x-ui.form-grid>

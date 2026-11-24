@@ -5,6 +5,7 @@ use App\Http\Controllers\PageFileController;
 use App\Http\Controllers\TaskAttachmentController;
 use App\Http\Middleware\EnsureCurrentWorkspace;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Livewire\Board;
 use App\Livewire\Clients;
 use App\Livewire\Dashboard;
 use App\Livewire\Projects;
@@ -43,6 +44,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
     Route::livewire('/roles', Roles\Index::class)->name('roles.index');
 
     Route::middleware(EnsureCurrentWorkspace::class)->group(function (): void {
+        Route::livewire('/pizarra', Board\Index::class)->name('board.index');
         Route::livewire('/projects', Projects\Index::class)->name('projects.index');
         Route::livewire('/projects/{project}', Projects\Show::class)->name('projects.show');
         Route::livewire('/projects/{project}/settings', Projects\Settings::class)->name('projects.settings');

@@ -43,6 +43,6 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        $this->call([ProjectSeeder::class, WorkspaceSeeder::class]);
+        $this->call([ProjectSeeder::class, WorkspaceSeeder::class, BoardSeeder::class]);
     }
 }

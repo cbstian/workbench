@@ -70,6 +70,13 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 - La vista y los filtros se guardan por usuario y proyecto en `project_task_views` en cada cambio; el mes del calendario y el orden del listado no se recuerdan.
 - Kanban: arrastrar con `wire:sort` (grupo `tasks`, id de grupo = estado). `App\Actions\Tasks\MoveTask` cambia estado y posición (huecos de 1024, rebalanceo si los vecinos son contiguos) y registra `status_changed`. Si el usuario no puede editar la tarea, se avisa y no se mueve.
 
+### Pizarra (E11)
+
+- `App\Livewire\Board\Index` (`/pizarra`, junto a Inicio, habilidad `view-projects`) es la pizarra del Workspace: filas de Proyectos y columnas de la semana (lunes a viernes; «Fin de semana» suma sábado y domingo). Pensada para un monitor vertical: columna de Proyecto fija, días en un contenedor con scroll, columna de hoy con `bg-today`.
+- La semana (`semana`) y los filtros (`fin_de_semana`, `sin_pausados`, `vencidos`, `sin_trabajo`, `q`) van en la URL. La página se refresca con `wire:poll.visible` cada 45 segundos.
+- Notas, prioridad, pausa y orden de filas son compartidos (ver `docs/permisos.md`). Ocultar un Proyecto es personal. Las subfilas son las Tareas raíz abiertas y se pliegan en el navegador (`$persist`).
+- Una celda vacía (o el «+») abre una nota; Enter la guarda. «Ya hecho» la crea cerrada. Clic en una nota: marcar hecha, editar, vincular una Tarea del Proyecto o eliminar.
+
 ### Wiki (E8)
 
 - `App\Livewire\Wiki\Index` sirve la wiki del Workspace y la de cada Proyecto (árbol, búsqueda full-text, filtro por etiqueta y «Nueva página»); `Wiki\PageShow` muestra, edita y mueve una Página, con subpáginas, archivos (`Wiki\PageFiles`) e historial.

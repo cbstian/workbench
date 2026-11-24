@@ -21,6 +21,7 @@ enum Permission: string
     case TasksUpdateAssigned = 'tasks.update-assigned';
     case ProjectWiki = 'wiki.project';
     case ProjectTrash = 'trash.project';
+    case BoardUpdate = 'board.update';
 
     /**
      * Abilities reserved to the super admin (RN-14, RN-24, RN-25, RN-26).
@@ -53,6 +54,7 @@ enum Permission: string
             self::TasksUpdateAssigned => 'Editar las tareas que tiene asignadas',
             self::ProjectWiki => 'Ver y editar la wiki de sus proyectos',
             self::ProjectTrash => 'Ver y restaurar la papelera de sus proyectos',
+            self::BoardUpdate => 'Crear y editar notas en la pizarra de sus proyectos',
         };
     }
 }
