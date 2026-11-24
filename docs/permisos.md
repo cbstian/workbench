@@ -37,7 +37,7 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 | Rol | Permisos |
 | --- | --- |
 | `admin` | todos los del catálogo |
-| `member` | `tasks.view`, `tasks.create`, `tasks.update-assigned`, `wiki.project` |
+| `member` | `tasks.view`, `tasks.create`, `tasks.update-assigned`, `wiki.project`, `board.update` |
 | `client` | ninguno (por ahora accede sin ver nada) |
 
 ### Perfil Admin
@@ -62,6 +62,19 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 - Wiki de un Proyecto (`/projects/{uuid}/wiki`): Super admin y equipo con `wiki.project` (admin y miembro). El usuario cliente no entra.
 - Quien entra a una wiki crea, edita, mueve, etiqueta y envía a la papelera sus Páginas, y sube o borra archivos.
 - Las subpáginas de una Página en la papelera quedan ocultas hasta restaurarla.
+
+### Pizarra (E11)
+
+La Pizarra (`/pizarra`) es del Workspace: quien puede ver un Proyecto ve las mismas notas, la misma prioridad, la misma pausa y el mismo orden de filas.
+
+| Acción | Quién |
+| --- | --- |
+| Ver la Pizarra y sus notas | Super admin, y admin o miembro del equipo del Proyecto (`view-projects`, `Project::visibleTo`). El usuario cliente no entra: el ítem no está en el menú y la página lo rechaza |
+| Crear, editar, marcar hecha y eliminar notas (`board.update`) | Super admin, y admin o miembro del equipo. Cualquiera de ellos puede cambiar la nota de otro: es una superficie de trabajo compartida, no un apunte personal. Se guarda `created_by_id` y, al marcarla hecha, `completed_by_id` |
+| Pausar, prioridad del Proyecto, fecha de término y orden de filas (`projects.update`) | Super admin y admin del Proyecto. El orden (`projects.board_position`) es compartido; reordenar con un filtro activo usa como vecinos las filas que se están viendo |
+| Ocultar o mostrar un Proyecto | Quien puede verlo. Es personal (`board_project_hides`): no cambia la Pizarra de los demás |
+
+Las notas no van a la papelera. `board.update` está en el catálogo de admin y de miembro; el rol cliente sigue sin permisos.
 
 ### Usuario cliente (E10)
 

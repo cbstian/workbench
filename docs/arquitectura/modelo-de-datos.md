@@ -2,7 +2,7 @@
 
 > Diseño completo de la base de datos a partir de `docs/flujo-canonico.md` (E1–E10, RN-01–RN-27).
 > Motor: **PostgreSQL 18** (instalado: 18.6). Tablas, columnas y valores en inglés; prosa en español (RN-20).
-> Fecha: 2026-11-21. Estado: **implementado** en las migraciones de dominio (sección 11 lista archivos, modelos y tests).
+> Fecha: 2026-11-21. Actualizado: 2026-11-24 (E11 · Pizarra). Estado: **implementado** en las migraciones de dominio (sección 11 lista archivos, modelos y tests).
 
 ## Índice
 
@@ -67,9 +67,10 @@
 | **Identidad y tenancy** | `users`, `accounts`, `workspaces`, `workspace_user` | E1, E3 |
 | **Autorización** (spatie) | `roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions` | E3 |
 | **Clientes** | `clients`, `client_user` | E2, E3, E10 |
-| **Proyectos** | `projects`, `project_user`, `project_statuses`, `project_priorities`, `task_labels` | E4 |
+| **Proyectos** | `projects`, `project_user`, `project_statuses`, `project_priorities`, `task_labels` | E4, E11 |
 | **Tareas** | `tasks`, `task_user`, `task_task_label`, `task_comments`, `task_attachments`, `task_activities` | E5, E6 |
 | **Vistas** | `project_task_views` | E7 |
+| **Pizarra** | `board_entries`, `board_project_hides` (y columnas de `projects`) | E11 |
 | **Wiki** | `pages`, `page_files`, `page_activities`, `wiki_labels`, `page_wiki_label` | E8 |
 | **Papelera** | vista `trash_items` | E9 |
 | **Framework** | `sessions`, `password_reset_tokens`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — |
@@ -317,8 +318,15 @@ Trigger `client_user_requires_client_role`: la membresía referenciada debe tene
 | `description` | `text` | sí | |
 | `icon` | `varchar(32)` | sí | emoji o nombre de icono |
 | `is_visible_to_client` | `boolean` | no | default `false`. Se registra sin efecto (RN-05) |
+| `priority` | `varchar(16)` | no | default `none`. `CHECK (priority in ('none','low','medium','high','urgent'))`. Prioridad del Proyecto, comparable entre Proyectos; no es `project_priorities` (RN-11) |
+| `due_on` | `date` | sí | fecha de término del Proyecto. Vencido si es anterior a hoy y `paused_at` es null |
+| `paused_at` | `timestamptz` | sí | pausa reversible. No es archivado ni papelera (RN-11) |
+| `paused_by_id` | `bigint → users` restrict | sí | quién pausó |
+| `board_position` | `bigint` | no | orden compartido de la fila en la Pizarra. Huecos de 1024 (D-09) |
 | `created_by_id` | `bigint → users` | no | siempre un Super admin (RN-13) |
 | Estándar | ✓ timestamps, borrado lógico | | |
+
+Índice parcial `projects_workspace_board_position_index` en `(workspace_id, board_position) where deleted_at is null`.
 
 `unique (id, workspace_id)` para FK compuestas.
 
@@ -535,6 +543,35 @@ Trigger `pages_enforce_same_wiki_parent`: el padre pertenece al mismo Workspace 
 ### 5.24 Tablas de spatie/laravel-permission
 `roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`, con teams activado: `team_id → workspaces.id` (ya existe). Ver D-04 para la relación con `workspace_user.role`.
 
+### 5.25 `board_entries`
+Nota corta de un Proyecto en un día de la Pizarra (E11, RN-11). Varias por celda. No van a la papelera: se borran de verdad.
+
+| Columna | Tipo | Null | Nota |
+|---|---|---|---|
+| `id`, `uuid` | | no | |
+| `workspace_id` | `bigint` | no | FK `(project_id, workspace_id) → projects(id, workspace_id)` |
+| `project_id` | `bigint` | no | |
+| `task_id` | `bigint` | sí | FK `(task_id, project_id) → tasks(id, project_id)`. Null si la nota no apunta a una Tarea. Con `task_id` null la FK no se exige |
+| `occurs_on` | `date` | no | día de la columna |
+| `body` | `varchar(80)` | no | `CHECK (length(btrim(body)) > 0)` |
+| `status` | `varchar(16)` | no | `CHECK (status in ('planned','done'))` |
+| `position` | `bigint` | no | orden dentro de la celda. Huecos de 1024 |
+| `created_by_id` | `bigint → users` restrict | no | quién creó la nota |
+| `completed_at` | `timestamptz` | sí | `CHECK ((status = 'done') = (completed_at is not null))` |
+| `completed_by_id` | `bigint → users` restrict | sí | quién la marcó hecha |
+| Estándar | ✓ timestamps | | sin borrado lógico |
+
+Índice `(project_id, occurs_on)` para la semana visible y el conteo de notas vencidas (`status = planned` y `occurs_on` anterior a hoy).
+
+### 5.26 `board_project_hides`
+Proyecto que un usuario ocultó en su Pizarra. No cambia el tablero de los demás.
+
+| Columna | Tipo | Null | Nota |
+|---|---|---|---|
+| `user_id` | `bigint → users` cascade | no | PK |
+| `project_id` | `bigint → projects` cascade | no | PK |
+| `created_at` | `timestamptz` | no | |
+
 ## 6. Integridad: reglas de negocio en la base
 
 | Regla | Mecanismo en PostgreSQL | Resto en la aplicación |
@@ -555,6 +592,7 @@ Trigger `pages_enforce_same_wiki_parent`: el padre pertenece al mismo Workspace 
 | RN-24 Wiki del Workspace solo Super admin | `pages.project_id is null` identifica la wiki del Workspace | `PagePolicy` |
 | RN-25 / RN-26 Quién crea qué | `created_by_id` para auditoría | Policies |
 | RN-27 / A-23 No borrar el estado inicial | función `protect_initial_workflow_value()` con triggers en `project_statuses` y `project_priorities` (se extiende a la prioridad inicial, que también toma toda Tarea nueva): rechaza `deleted_at` no nulo si `is_initial` | la UI obliga a elegir otro inicial primero |
+| RN-11 Pizarra | `projects.priority` con `CHECK`; `board_entries.status` y cuerpo no vacío; hecha ⇔ `completed_at`; FK `(task_id, project_id)` impide una nota apuntando a una Tarea de otro Proyecto (A-25) | vencido, día trabajado y «hoy» en `America/Santiago` los calcula la aplicación. La pausa no archiva. Ocultar una fila es `board_project_hides`. El orden compartido es `projects.board_position` |
 
 Ejemplo de FK compuesta (patrón usado en todo el modelo):
 
@@ -701,6 +739,8 @@ Las migraciones de dominio se reescribieron (no hay datos de producción); `migr
 | `2026_11_10_000441_create_wiki_tables` | `wiki_labels`, `pages` (con `search_vector`), `page_wiki_label`, `page_files`, `page_activities` + `pages_enforce_same_wiki_parent` (incluye ciclos), append-only |
 | `2026_11_10_000442_create_project_task_views_table` | `project_task_views` con `CHECK` en `view` |
 | `2026_11_10_000443_create_trash_items_view` | vista `trash_items` (incluye Workspaces; el índice de papelera de `workspaces` es por `account_id`) |
+| `2026_11_24_000000_create_board_tables` | prioridad, término, pausa y orden de `projects`; `board_entries`; `board_project_hides` |
+| `2026_11_24_000001_sync_board_permissions` | vuelve a correr `SyncRolePermissions` para otorgar `board.update` |
 
 Se eliminaron `add_access_columns_to_users_table` y `add_workspace_and_client_to_projects_table` (absorbidas).
 
@@ -736,6 +776,7 @@ Se eliminaron `add_access_columns_to_users_table` y `add_workspace_and_client_to
 | D-10 | Contenido rico como `text` (HTML saneado) | `jsonb` de bloques | Editor aún no definido; `text` es portable y la búsqueda se genera igual. Si el editor guarda bloques, se agrega `body_json jsonb` sin romper nada |
 | D-11 | Enums en `varchar` + `CHECK` | tipo `enum` de PostgreSQL | Alterar un enum nativo requiere migraciones delicadas |
 | D-12 | Filtros recordados en `jsonb` | tabla normalizada de filtros | Son preferencias de UI, se leen y escriben enteras; no se consultan por contenido |
+| D-13 | Pizarra compartida, orden compartido, ocultar personal, notas sin papelera | orden por usuario; notas en `trash_items` | La pizarra reemplaza una pizarra física común: todos ven las mismas notas y el mismo orden. Ocultar una fila es una preferencia. Las notas son apuntes del día, no elementos del flujo de RN-19 |
 
 ## 13. Extensiones previstas (fuera del MVP)
 

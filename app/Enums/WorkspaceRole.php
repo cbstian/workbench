@@ -76,12 +76,14 @@ enum WorkspaceRole: string
                 Permission::TasksUpdateAssigned,
                 Permission::ProjectWiki,
                 Permission::ProjectTrash,
+                Permission::BoardUpdate,
             ],
             self::Member => [
                 Permission::TasksView,
                 Permission::TasksCreate,
                 Permission::TasksUpdateAssigned,
                 Permission::ProjectWiki,
+                Permission::BoardUpdate,
             ],
             self::Client => [],
         };

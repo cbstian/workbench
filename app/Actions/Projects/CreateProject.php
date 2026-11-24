@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 class CreateProject
 {
     /**
-     * @param  array{name: string, description?: string|null, icon?: string|null, client_id?: int|null, is_visible_to_client?: bool}  $attributes
+     * @param  array{name: string, description?: string|null, icon?: string|null, client_id?: int|null, is_visible_to_client?: bool, priority?: string, due_on?: string|null}  $attributes
      * @param  list<int>  $teamUserIds
      */
     public function handle(Workspace $workspace, User $creator, array $attributes, array $teamUserIds = []): Project

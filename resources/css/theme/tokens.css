@@ -31,6 +31,15 @@
         --wb-elevated: #ffffff;
         --wb-edge: #d3d0ca;
 
+        /* Project priority dots and board marks (E11). Not the chart series. */
+        --wb-priority-none: #c4c2bc;
+        --wb-priority-low: #337ea9;
+        --wb-priority-medium: #c2922a;
+        --wb-priority-high: #d9730d;
+        --wb-priority-urgent: #c4554d;
+        --wb-today: rgb(143 107 74 / 0.14);
+        --wb-overdue: #c4554d;
+
         /* Chart series (ApexCharts, in order). Oak first, then Notion-like hues */
         --wb-chart-1: #8f6b4a;
         --wb-chart-2: #337ea9;
@@ -72,6 +81,14 @@
         --wb-elevated: #2b2b29;
         --wb-edge: #4a4945;
 
+        --wb-priority-none: #6b6a66;
+        --wb-priority-low: #529cca;
+        --wb-priority-medium: #e0b14a;
+        --wb-priority-high: #ffa344;
+        --wb-priority-urgent: #e06a62;
+        --wb-today: rgb(185 151 111 / 0.18);
+        --wb-overdue: #e06a62;
+
         --wb-chart-1: #b9976f;
         --wb-chart-2: #529cca;
         --wb-chart-3: #4dab9a;
@@ -107,4 +124,11 @@
     --color-overlay: var(--wb-overlay);
     --color-elevated: var(--wb-elevated);
     --color-edge: var(--wb-edge);
+    --color-priority-none: var(--wb-priority-none);
+    --color-priority-low: var(--wb-priority-low);
+    --color-priority-medium: var(--wb-priority-medium);
+    --color-priority-high: var(--wb-priority-high);
+    --color-priority-urgent: var(--wb-priority-urgent);
+    --color-today: var(--wb-today);
+    --color-overdue: var(--wb-overdue);
 }

@@ -10,6 +10,8 @@ it('renders the sidebar links registered in the navigation config', function () 
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee(route('projects.index'), escape: false)
+        ->assertSee(route('board.index'), escape: false)
+        ->assertSeeText('Pizarra')
         ->assertSee(route('settings.profile'), escape: false)
         ->assertSeeText('Espacio de trabajo');
 });

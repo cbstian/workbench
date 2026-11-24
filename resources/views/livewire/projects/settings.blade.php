@@ -11,7 +11,7 @@
     <div>
         @can('update', $project)
             <form wire:submit="saveGeneral">
-                <x-ui.form-section title="General" description="Nombre, icono, cliente y visibilidad para el cliente.">
+                <x-ui.form-section title="General" description="Nombre, icono, cliente, prioridad y visibilidad para el cliente.">
                     @include('livewire.projects.partials.fields', ['clientOptions' => $this->clientOptions])
 
                     <x-slot:actions>

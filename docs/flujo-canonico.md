@@ -1,7 +1,7 @@
 # Flujo canónico — Workbench
 
 > Qué hace el sistema, en lenguaje de negocio. **Sin tecnología**: nada de frameworks, tablas, endpoints ni pantallas concretas. Sale de `insumos/` de la carpeta del plan; lo que no esté ahí va a "Preguntas abiertas", no se inventa.
-> Fecha: 2026-10-11 · Actualizado: 2026-10-12 (aplica las respuestas de Sebastián) · 2026-10-12 (aplica la tercera ronda de respuestas) · 2026-10-12 (aplica la cuarta ronda de respuestas)
+> Fecha: 2026-10-11 · Actualizado: 2026-10-12 (aplica las respuestas de Sebastián) · 2026-10-12 (aplica la tercera ronda de respuestas) · 2026-10-12 (aplica la cuarta ronda de respuestas) · 2026-11-24 (E11 · Pizarra)
 > Base: `insumos/01-requerimientos.md` (mensaje de Sebastián y respuestas del 2026-10-11 y del 2026-10-12). Plane y TaskView son referencias, no requisitos.
 > Nombre: **Workbench**.
 
@@ -52,7 +52,7 @@ Cada usuario ve solo los Workspaces que creó o a los que fue invitado. Solo el 
   - biblioteca de archivos fuera de las Páginas;
   - notificaciones por correo;
   - menciones;
-  - vistas distintas de kanban, listado y calendario;
+  - vistas distintas de kanban, listado y calendario (la Pizarra del Workspace entra después del MVP, en E11);
   - más de un nivel de subtareas;
   - asignar Tareas a usuarios cliente;
   - versiones de Páginas de la wiki (solo historial de cambios);
@@ -89,6 +89,11 @@ Cada usuario ve solo los Workspaces que creó o a los que fue invitado. Solo el 
 | Adjunto | Archivo asociado a una Tarea | documento |
 | Historial de cambios | Registro de cada cambio de una Tarea o de una Página | log, bitácora |
 | Vista | Forma de ver las Tareas de un Proyecto: kanban, listado o calendario | tablero (como sinónimo general) |
+| Pizarra | Vista del Workspace, compartida: filas de Proyectos y columnas de días, con notas cortas de lo que hay que hacer | tablero (como sinónimo de kanban), pizarra física |
+| Nota de pizarra | Apunte corto de un Proyecto en un día: planificada o hecha; puede apuntar a una Tarea de ese Proyecto | comentario, tarea |
+| Prioridad del Proyecto | Urgencia del Proyecto, comparable con la de otros Proyectos (ninguna, baja, media, alta, urgente). Distinta de la prioridad de sus Tareas | prioridad de tarea |
+| Proyecto en pausa | Proyecto detenido de forma reversible. Sigue en la Pizarra, tachado y rayado. No es archivarlo ni enviarlo a la papelera | archivado |
+| Día trabajado | Día en el que el Proyecto tiene al menos una nota hecha. Vacío o solo con notas planificadas, no está trabajado | — |
 | Filtro | Criterio para acotar las Tareas de una Vista; se recuerda por usuario | búsqueda |
 | Wiki | Conjunto de Páginas de documentación de un Workspace o de un Proyecto | base de conocimiento |
 | Página | Contenido de la wiki, con subpáginas, historial de cambios, archivos y etiquetas de wiki | documento, nota |
@@ -115,6 +120,7 @@ Estados relevantes:
 | E8 | Wiki y archivos | F-09 | E1, E4 |
 | E9 | Papelera | F-10 | E2, E4, E5, E8 |
 | E10 | Acceso del usuario cliente | F-11 | E3 |
+| E11 | Pizarra | F-12 | E4, E5, E7, E10 |
 
 ### E1 · Super admin y Workspaces
 - **Objetivo:** que los usuarios se creen por consola, sin registro abierto, y que cada uno, como Super admin de su cuenta, cree sus Workspaces.
@@ -278,6 +284,30 @@ Estados relevantes:
   - [ ] Dado un usuario cliente, cuando inicia sesión, entonces accede, pero no ve Proyectos, Tareas ni documentación.
   - [ ] Dado un usuario cliente, cuando intenta crear o editar algo, entonces no se permite.
 
+### E11 · Pizarra
+- **Objetivo:** que Sebastián vea, en un monitor vertical, qué hay que hacer cada día en sus Proyectos, en cuáles trabajó, la prioridad y lo vencido, en lugar de la pizarra física.
+- **Depende de:** E4 (Proyectos), E5 (Tareas, para las subfilas y el vínculo opcional), E7 (la regla de Tarea abierta vencida) y E10 (el usuario cliente no entra).
+- **Cubre:** F-12 · A-24, A-25, A-26, A-27 · RN-11, RN-21.
+- **Terminado cuando:** la Pizarra muestra los Proyectos visibles en filas y los días de la semana en columnas; las notas son las mismas para quien ve el Proyecto; se distingue lo planificado, lo hecho, lo vencido, lo pausado y el día no trabajado; el usuario cliente no la ve.
+
+#### F-12 · Revisar la semana en la Pizarra
+- **Actor y situación:** Super admin, admin o miembro, frente a los Proyectos que puede ver.
+- **Acción y resultado esperado:** ve una fila por Proyecto (con las Tareas raíz abiertas plegadas) y una columna por día de la semana visible, de lunes a viernes, pudiendo incluir el fin de semana. Se mueve a la semana anterior, a la de hoy y a la siguiente; la columna de hoy se destaca. En cada celda anota una o más notas cortas (por ejemplo «Update», «API», «Backup», «Reporte»), planificadas o ya hechas; una nota puede nacer hecha, para registrar trabajo que no estaba planeado, y puede apuntar a una Tarea o subtarea del mismo Proyecto. Quien ve el Proyecto ve las mismas notas. Quien trabaja en él (Super admin, admin y miembro del equipo) crea, edita, marca y elimina notas; se recuerda quién creó cada una. La prioridad del Proyecto (ninguna, baja, media, alta, urgente, con color) se compara entre Proyectos y no reemplaza las prioridades de sus Tareas. Un Proyecto puede tener fecha de término y puede pausarse: la pausa es reversible, la fila sigue visible, tachada y rayada, y no es archivarlo ni mandarlo a la papelera. El orden de las filas es del Workspace; ocultar un Proyecto es de cada persona. La semana y los filtros (ocultar pausados, solo vencidos, no trabajados hoy, búsqueda) se pueden compartir.
+- **Criterios de aceptación:**
+  - [ ] Dado un Proyecto, cuando se mira la Pizarra, entonces su fila muestra la prioridad, y si está vencido o en pausa.
+  - [ ] Dado un día de un Proyecto, cuando se anota una nota planificada o ya hecha, entonces queda en esa celda para quien ve el Proyecto, y se sabe quién la creó.
+  - [ ] Dada una nota, cuando se marca hecha, se edita, se vincula a una Tarea del mismo Proyecto o se elimina, entonces la Pizarra queda así para todos.
+  - [ ] Dada una nota de un día anterior que sigue planificada, entonces está vencida. Una nota hecha no está vencida.
+  - [ ] Dado un Proyecto con fecha de término anterior a hoy que no está en pausa, entonces el Proyecto está vencido. Si está en pausa, no.
+  - [ ] Dado un Proyecto, entonces se muestra aparte cuántas Tareas abiertas tienen el término vencido.
+  - [ ] Dado un día con al menos una nota hecha, entonces está trabajado. Si está vacío o solo tiene notas planificadas, no está trabajado y se nota en la celda.
+  - [ ] Dado el filtro de no trabajados hoy, entonces quedan los Proyectos sin nota hecha hoy; los que están en pausa no entran.
+  - [ ] Dado un Proyecto en pausa, entonces su fila sigue, tachada y rayada, y se puede reanudar.
+  - [ ] Dado el orden de las filas, entonces es el mismo para quien ve la Pizarra. Ocultar un Proyecto solo lo quita de la Pizarra de quien lo ocultó.
+  - [ ] Dado un usuario cliente, cuando intenta abrir la Pizarra, entonces no se permite.
+  - [ ] «Hoy» es el día en America/Santiago.
+- **Notas:** las subfilas son las Tareas raíz abiertas del Proyecto, plegadas por defecto. Una nota vinculada a una subtarea se muestra en la fila de su Tarea raíz. Las notas no van a la papelera: son apuntes del día. Reordenar con un filtro activo reordena entre las filas que se están viendo.
+
 ## 6. Alternativas y errores
 | ID | Desde | Situación | Qué debe pasar |
 |---|---|---|---|
@@ -304,6 +334,10 @@ Estados relevantes:
 | A-21 | F-05 | Un admin o un miembro intenta agregar a un Proyecto un usuario ya existente | No se permite: solo el Super admin |
 | A-22 | F-06 | Crear una Tarea sin estado | No se permite: el estado es obligatorio al crearla |
 | A-23 | F-05 | Borrar el estado inicial del Proyecto | No se permite hasta elegir otro estado como inicial |
+| A-24 | F-12 | Usuario cliente intenta abrir la Pizarra | No se permite |
+| A-25 | F-12 | Nota apuntando a una Tarea de otro Proyecto | No se permite |
+| A-26 | F-12 | Proyecto con fecha de término vencida, pero en pausa | El Proyecto no está vencido; la fila sigue tachada y rayada |
+| A-27 | F-12 | Crear una nota directamente como hecha | Es válido: registra trabajo que no estaba planeado |
 
 ## 7. Reglas de negocio
 - **RN-01** Sin registro abierto: los usuarios se crean por consola, y cada usuario creado así es Super admin de su cuenta.
@@ -316,9 +350,9 @@ Estados relevantes:
 - **RN-08** Todo cambio en una Tarea queda en su historial de cambios.
 - **RN-09** Hay wiki a nivel de Workspace y de Proyecto, con subpáginas y solo historial de cambios (sin versiones); los archivos van dentro de las Páginas, sin biblioteca aparte; las etiquetas de wiki son por Workspace y distintas de las de tareas; se marca qué documentación ve el Cliente.
 - **RN-10** Fuera del MVP: notificaciones por correo y menciones.
-- **RN-11** Solo tres vistas por ahora: kanban, listado y calendario. Los filtros se recuerdan por usuario; campos propuestos (ajustables): estado, prioridad, asignado, etiqueta y rango de fechas.
+- **RN-11** Las Tareas de un Proyecto se ven en kanban, listado y calendario, con filtros que se recuerdan por usuario (estado, prioridad, asignado, etiqueta y rango de fechas). La Pizarra es una vista compartida del Workspace, no una cuarta vista de Tareas: filas de Proyectos (con las Tareas raíz abiertas plegables) y columnas de días, de lunes a viernes y con el fin de semana opcional. Cada celda tiene notas cortas, planificadas o hechas; una nota puede crearse ya hecha y puede apuntar a una Tarea del mismo Proyecto, y se recuerda quién la creó. La prioridad del Proyecto (ninguna, baja, media, alta, urgente) se compara entre Proyectos y es distinta de la prioridad de sus Tareas. Un Proyecto está vencido si su fecha de término es anterior a hoy y no está en pausa; una nota está vencida si su día es anterior a hoy y sigue planificada; aparte se cuentan las Tareas abiertas con término vencido. Hoy es el día en America/Santiago. Pausar es reversible y no es archivar: la fila sigue, tachada y rayada. Un día está trabajado si tiene alguna nota hecha; vacío o solo planificado no está trabajado y se nota en la celda. «No trabajados hoy» deja los Proyectos sin nota hecha hoy y no incluye los pausados. El orden de las filas es del Workspace; ocultar un Proyecto es de cada persona. El usuario cliente no ve la Pizarra. La semana y los filtros se pueden compartir.
 - **RN-12** Un Cliente tiene nombre, descripción, logo y color.
-- **RN-13** Un Proyecto tiene nombre, descripción e icono, Cliente opcional, equipo y marca de visibilidad para el Cliente; solo el Super admin lo crea.
+- **RN-13** Un Proyecto tiene nombre, descripción e icono, Cliente opcional, equipo y marca de visibilidad para el Cliente; solo el Super admin lo crea. Desde E11 tiene además prioridad de Proyecto, fecha de término opcional y pausa reversible.
 - **RN-14** El Super admin crea N Workspaces, sus Clientes y sus Proyectos, crea admins, miembros y usuarios cliente, y puede desactivar el acceso o eliminar usuarios; el bloqueo y el borrado son lógicos.
 - **RN-15** Roles dentro del Workspace: admin, miembro y cliente.
 - **RN-16** Prioridades por defecto: ninguna, baja, media, alta, urgente; configurables por Proyecto.

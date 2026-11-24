@@ -42,6 +42,9 @@ Variables CSS con valor claro (`:root`) y oscuro (`.dark`), expuestas como utili
 | `overlay` (`bg-overlay`) | negro cálido 45 % | negro 62 % | Velo detrás de paneles laterales, diálogos y modales |
 | `elevated` (`bg-elevated`) | `#ffffff` | `#2b2b29` | Fondo de paneles que se superponen a la página |
 | `edge` (`ring-edge`) | `#d3d0ca` | `#4a4945` | Borde visible de esos paneles |
+| `priority-none` … `priority-urgent` | gris, azul `#337ea9`, oro `#c2922a`, naranja `#d9730d`, rojo `#c4554d` | gris, azul `#529cca`, oro `#e0b14a`, naranja `#ffa344`, rojo `#e06a62` | Punto de prioridad del Proyecto en la Pizarra (ninguna, baja, media, alta, urgente) |
+| `today` (`bg-today`) | roble al 14 % | roble al 18 % | Columna del día de hoy en la Pizarra |
+| `overdue` | `#c4554d` | `#e06a62` | Proyecto, nota o tarea vencidos |
 | `--wb-scrollbar-thumb` / `-hover` | negro 18 % / 32 % | blanco 14 % / 26 % | Barra de scroll sutil (utilidad `scrollbar-subtle`, sin clase de Tailwind propia) |
 
 Además: `--wb-brand-*` (colores del isotipo), `--wb-glow-*`, `--wb-grid-dot` (fondo de la landing) y `--wb-chart-1` … `--wb-chart-6` (series de gráficos, en orden: roble, azul, verde, naranja, morado, rosa; versión clara y oscura). Los lee `resources/js/modules/chart.js`, no hay utilidad de Tailwind para ellos.

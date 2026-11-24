@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProjectPriorityLevel;
 use App\Models\Project;
 use App\Models\ProjectPriority;
 use App\Models\ProjectStatus;
@@ -56,6 +57,8 @@ class ProjectFactory extends Factory
             'name' => fake()->randomElement(self::KINDS).' '.fake()->randomElement(self::SUBJECTS),
             'description' => fake()->optional(0.85)->randomElement(self::DESCRIPTIONS),
             'icon' => fake()->randomElement(self::ICONS),
+            'priority' => fake()->randomElement(ProjectPriorityLevel::cases()),
+            'due_on' => fake()->optional(0.4)->dateTimeBetween('-1 week', '+6 weeks')?->format('Y-m-d'),
             'is_visible_to_client' => fake()->boolean(35),
             'created_by_id' => fn (array $attributes): int => Workspace::query()->findOrFail($attributes['workspace_id'])->account->owner_id,
             'created_at' => $createdAt = fake()->dateTimeBetween('-8 months'),
@@ -86,5 +89,28 @@ class ProjectFactory extends Factory
         return $this->state(fn (array $attributes): array => [
             'is_visible_to_client' => true,
         ]);
+    }
+
+    /**
+     * Set the project-level priority (comparable across projects).
+     */
+    public function priority(ProjectPriorityLevel $level): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'priority' => $level,
+        ]);
+    }
+
+    /**
+     * Pause the project. Pausing is reversible and is not archiving.
+     */
+    public function paused(): static
+    {
+        return $this->afterCreating(function (Project $project): void {
+            $project->forceFill([
+                'paused_at' => now(),
+                'paused_by_id' => $project->created_by_id,
+            ])->save();
+        });
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Concerns\TracksDeleter;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -99,6 +100,30 @@ class Task extends Model
     public function subtasks(): HasMany
     {
         return $this->hasMany(Task::class, 'parent_id')->orderBy('position');
+    }
+
+    /**
+     * Board notes linked to this task.
+     *
+     * @return HasMany<BoardEntry, $this>
+     */
+    public function boardEntries(): HasMany
+    {
+        return $this->hasMany(BoardEntry::class);
+    }
+
+    /**
+     * Open tasks whose end date is before today (the kanban overdue rule).
+     *
+     * Closed tasks carry completed_at, including cancelled ones.
+     *
+     * @param  Builder<Task>  $query
+     */
+    public function scopeOpenPastDue(Builder $query): void
+    {
+        $query->whereNull('completed_at')
+            ->whereNotNull('ends_on')
+            ->where('ends_on', '<', today()->toDateString());
     }
 
     /**
