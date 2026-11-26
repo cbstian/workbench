@@ -12,6 +12,7 @@ use App\Models\Project;
 use App\Models\ProjectStatus;
 use App\Models\ProjectTaskView;
 use App\Models\Task;
+use App\Support\TaskCalendar;
 use App\Support\TaskFilters;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -238,28 +239,7 @@ class TaskBoard extends Component
     #[Computed]
     public function calendarWeeks(): array
     {
-        $month = $this->calendarMonth();
-        $start = $month->copy()->startOfWeek(Carbon::MONDAY);
-        $end = $month->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY);
-        $dated = $this->tasks->filter(fn (Task $task): bool => $task->starts_on !== null || $task->ends_on !== null);
-
-        $weeks = [];
-
-        for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
-            $weeks[intdiv($start->diffInDays($day), 7)][] = [
-                'date' => $day->copy(),
-                'inMonth' => $day->month === $month->month,
-                'isToday' => $day->isToday(),
-                'tasks' => $dated->filter(function (Task $task) use ($day): bool {
-                    $from = $task->starts_on ?? $task->ends_on;
-                    $to = $task->ends_on ?? $task->starts_on;
-
-                    return $day->betweenIncluded($from->copy()->startOfDay(), $to->copy()->endOfDay());
-                })->values(),
-            ];
-        }
-
-        return array_values($weeks);
+        return TaskCalendar::weeks($this->calendarMonth(), $this->tasks);
     }
 
     /**
@@ -268,7 +248,7 @@ class TaskBoard extends Component
     #[Computed]
     public function undatedCount(): int
     {
-        return $this->tasks->filter(fn (Task $task): bool => $task->starts_on === null && $task->ends_on === null)->count();
+        return TaskCalendar::undatedCount($this->tasks);
     }
 
     public function changeMonth(int $offset): void
@@ -285,11 +265,7 @@ class TaskBoard extends Component
 
     public function calendarMonth(): Carbon
     {
-        try {
-            return Carbon::createFromFormat('!Y-m', $this->month)->startOfMonth();
-        } catch (\Throwable) {
-            return now()->startOfMonth();
-        }
+        return TaskCalendar::month($this->month);
     }
 
     #[Computed]

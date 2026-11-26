@@ -45,6 +45,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
 
     Route::middleware(EnsureCurrentWorkspace::class)->group(function (): void {
         Route::livewire('/pizarra', Board\Index::class)->name('board.index');
+        Route::livewire('/tareas', Tasks\Index::class)->name('tasks.index');
         Route::livewire('/projects', Projects\Index::class)->name('projects.index');
         Route::livewire('/projects/{project}', Projects\Show::class)->name('projects.show');
         Route::livewire('/projects/{project}/settings', Projects\Settings::class)->name('projects.settings');

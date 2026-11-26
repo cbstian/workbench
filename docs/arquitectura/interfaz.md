@@ -79,6 +79,12 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 - Notas, prioridad, pausa y orden de filas son compartidos (ver `docs/permisos.md`). Ocultar un Proyecto es personal. Las subfilas son las Tareas raíz abiertas y se pliegan en el navegador (`$persist`).
 - Una celda vacía (o el «+») abre una nota; Enter la guarda. «Ya hecho» la crea cerrada. Clic en una nota: marcar hecha, editar, vincular una Tarea del Proyecto o eliminar.
 
+### Tareas de todos los proyectos
+
+- `App\Livewire\Tasks\Index` (`/tareas`, bajo la Pizarra, habilidad `view-projects`) junta las Tareas raíz de los Proyectos que el usuario puede abrir en las mismas tres vistas que un Proyecto. El calendario reutiliza `App\Support\TaskCalendar` y marca además el término de cada Proyecto.
+- El kanban agrupa por **categoría de estado** (`StatusCategory`), porque cada Proyecto nombra sus estados. Soltar una tarjeta en otra columna la lleva al primer estado de esa categoría en su Proyecto (`MoveTask`, al final de la columna); si el Proyecto no tiene uno, avisa y no la mueve.
+- Filtros en la URL: `vista`, `q`, `proyectos`, `clientes`, `asignados`, `estados`, `desde`/`hasta`, `vencidas`, `sin_pausados`, `cerradas` (por defecto se ocultan las completadas y canceladas) y `mes`.
+
 ### Wiki (E8)
 
 - `App\Livewire\Wiki\Index` sirve la wiki del Workspace y la de cada Proyecto (árbol, búsqueda full-text, filtro por etiqueta y «Nueva página»); `Wiki\PageShow` muestra, edita y mueve una Página, con subpáginas, archivos (`Wiki\PageFiles`) e historial.
