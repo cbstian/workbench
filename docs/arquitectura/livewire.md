@@ -45,7 +45,7 @@ Genera:
 
 | Clase | Ruta | Qué hace |
 | --- | --- | --- |
-| `App\Livewire\Dashboard` | `GET /dashboard` (`dashboard`) | Saludo, cifras, gráficos de proyectos (ApexCharts) y actividad reciente |
+| `App\Livewire\Dashboard` | `GET /dashboard` (`dashboard`) | Resumen del trabajo abierto: atrasadas, para hoy, requiere atención y próximos 7 días |
 | `App\Livewire\Projects\Index` | `GET /projects` (`projects.index`) | Tabla de proyectos con búsqueda, orden y paginación (`x-table` de TallStackUI) |
 | `App\Livewire\Projects\Show` | `GET /projects/{project}` (`projects.show`) | Página del proyecto (encabezado; tareas y wiki llegarán aquí) |
 | `App\Livewire\Navigation\ProjectLinks` | Dentro del sidebar | Lista de proyectos bajo «Proyectos»; se refresca con `projects-changed` |

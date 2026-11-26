@@ -2,13 +2,12 @@
 
 namespace App\Livewire\Tasks;
 
-use App\Actions\Tasks\MoveTask;
+use App\Actions\Tasks\MoveTaskToCategory;
 use App\Enums\StatusCategory;
 use App\Enums\TaskView;
 use App\Livewire\Concerns\WithCurrentWorkspace;
 use App\Models\Client;
 use App\Models\Project;
-use App\Models\ProjectStatus;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\TaskCalendar;
@@ -348,19 +347,9 @@ class Index extends Component
             return;
         }
 
-        $status = ProjectStatus::query()
-            ->where('project_id', $task->project_id)
-            ->where('category', $target)
-            ->orderBy('position')
-            ->first();
-
-        if ($status === null) {
+        if (app(MoveTaskToCategory::class)->handle($task, auth()->user(), $target) === null) {
             $this->toast()->warning('No se pudo mover', 'El proyecto no tiene un estado «'.$target->label().'».')->send();
-
-            return;
         }
-
-        app(MoveTask::class)->handle($task, auth()->user(), $status, null, null);
     }
 
     /**

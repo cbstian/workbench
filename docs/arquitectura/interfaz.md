@@ -70,6 +70,15 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 - La vista y los filtros se guardan por usuario y proyecto en `project_task_views` en cada cambio; el mes del calendario y el orden del listado no se recuerdan.
 - Kanban: arrastrar con `wire:sort` (grupo `tasks`, id de grupo = estado). `App\Actions\Tasks\MoveTask` cambia estado y posición (huecos de 1024, rebalanceo si los vecinos son contiguos) y registra `status_changed`. Si el usuario no puede editar la tarea, se avisa y no se mueve.
 
+### Inicio
+
+- `App\Livewire\Dashboard` (`/dashboard`) resume el trabajo abierto de los Proyectos que el usuario puede abrir, sin los que están en pausa: cifras (Atrasadas, Para hoy, Próximos 7 días, Sin fecha de término) que llevan a `/tareas` filtrado, listas «Atrasadas» y «Para hoy» (más las notas de la Pizarra planificadas para hoy), «Requiere atención» y la agenda de los próximos 7 días agrupada por día.
+- Cuenta raíces y subtareas abiertas (`completed_at` nulo). Orden: prioridad, término, nombre. Cada lista muestra 10 y enlaza al resto.
+- «Todo el equipo / Solo mías» (`mias` en la URL) filtra por asignado.
+- Avisos de «Requiere atención» (solo los que tienen casos): alta prioridad sin término (las dos prioridades de mayor posición de cada Proyecto, no la inicial), sin responsable con término en ≤ 7 días (solo en modo equipo), detenidas (categoría «En curso» sin cambios hace 14 días) y Proyectos vencidos o por vencer.
+- El botón ✓ de cada fila cierra la tarea con `App\Actions\Tasks\MoveTaskToCategory` (primer estado «Completada» del Proyecto), solo si el usuario puede editarla. La página se refresca con `wire:poll.visible` cada 60 segundos.
+- Un usuario cliente sigue sin ver contenido (E10).
+
 ### Pizarra (E11)
 
 - `App\Livewire\Board\Index` (`/pizarra`, junto a Inicio, habilidad `view-projects`) es la pizarra del Workspace: filas de Proyectos y columnas de la semana (lunes a viernes; «Fin de semana» suma sábado y domingo). Pensada para un monitor vertical: columna de Proyecto fija, días en un contenedor con scroll, columna de hoy con `bg-today`.
@@ -175,7 +184,6 @@ $this->toast()->success('Cliente creado', 'Ya puedes asignarle proyectos.')->sen
 - ApexCharts se carga con `import()` dinámico: las páginas sin gráficos no lo descargan.
 - Al cambiar el tema, el gráfico se actualiza solo. Si Livewire vuelve a renderizar con datos nuevos, el gráfico se recrea (el componente se identifica por sus opciones).
 - Colores de series: tokens `--wb-chart-1` … `--wb-chart-6` (ver `diseno.md`).
-- Ejemplos: `App\Livewire\Dashboard::projectsPerMonthChart()` (área) y `visibilityChart()` (donut).
 - No usar el `<x-chart>` de TallStackUI: el motor de gráficos del proyecto es ApexCharts.
 
 ## 5. Checklist para un módulo nuevo

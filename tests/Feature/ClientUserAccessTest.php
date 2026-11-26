@@ -60,11 +60,10 @@ it('shows a client user nothing, even what is marked visible to their client (A-
         ->assertDontSee(route('projects.index'), escape: false)
         ->assertDontSeeText('Administración');
 
-    expect(Livewire::actingAs($clientUser)->test(Dashboard::class)->instance()->stats)->toBe([
-        ['label' => 'Proyectos', 'value' => 0, 'hint' => 'Asignados a ti'],
-        ['label' => 'Visibles para el cliente', 'value' => 0, 'hint' => 'Marcados como visibles'],
-        ['label' => 'Nuevos este mes', 'value' => 0, 'hint' => now()->translatedFormat('F Y')],
-    ]);
+    $dashboard = Livewire::actingAs($clientUser)->test(Dashboard::class)->instance();
+
+    expect($dashboard->projects)->toBeEmpty()
+        ->and(collect($dashboard->stats)->sum('value'))->toBe(0);
 });
 
 it('forbids a client user every page of the workspace content', function () {
