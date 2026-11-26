@@ -70,7 +70,16 @@ class TaskPolicy
     }
 
     /**
-     * Comment and attach files: whoever may act on the task (F-07).
+     * Comment and reply: whoever sees the task, assigned or not (RN-10,
+     * revisada 2026-11-26), so a mentioned teammate can answer.
+     */
+    public function comment(User $user, Task $task): bool
+    {
+        return $this->view($user, $task);
+    }
+
+    /**
+     * Attach files: whoever may act on the task (F-07).
      */
     public function collaborate(User $user, Task $task): bool
     {

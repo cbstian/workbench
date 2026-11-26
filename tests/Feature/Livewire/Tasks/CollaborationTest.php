@@ -69,16 +69,18 @@ it('requires a comment body', function () {
         ->assertHasErrors(['body' => 'required']);
 });
 
-it('keeps members off tasks not assigned to them, while they still see them (RN-23)', function () {
+it('lets members comment on tasks not assigned to them, but not attach files (RN-10, RN-23)', function () {
     ['task' => $task, 'teammate' => $teammate, 'member' => $member] = collaborationTask();
     $task->comments()->create(['user_id' => $member->id, 'body' => 'Visible para el equipo']);
 
     Livewire::actingAs($teammate)->test(Thread::class, ['commentable' => $task])
         ->assertSeeText('Visible para el equipo')
-        ->assertDontSee('Escribe un comentario')
-        ->set('body', 'No debería')
+        ->assertSee('Escribe un comentario')
+        ->set('body', 'Respondo aunque no la tengo asignada')
         ->call('add')
-        ->assertForbidden();
+        ->assertHasNoErrors();
+
+    expect($task->comments()->where('user_id', $teammate->id)->exists())->toBeTrue();
 
     Livewire::actingAs($teammate)->test(Attachments::class, ['task' => $task])
         ->set('uploads', [UploadedFile::fake()->create('nota.txt', 1)])

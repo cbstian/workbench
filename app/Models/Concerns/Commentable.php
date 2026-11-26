@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Something people comment on, mention each other in and follow: a task or
- * a wiki page. Its policy answers `view`, `collaborate` (comment) and
+ * a wiki page. Its policy answers `view`, `comment` and
  * `moderate` (delete anybody's comment).
  */
 interface Commentable

@@ -21,7 +21,7 @@ use TallStackUi\Traits\Interactions;
 
 /**
  * Conversation of a task or a wiki page (F-07, RN-10): comments in one-level
- * threads, `@mentions` and a follow toggle. Whoever may collaborate comments
+ * threads, `@mentions` and a follow toggle. Whoever may see the element comments
  * and replies; authors edit and delete their own comments and moderators
  * delete any.
  */
@@ -100,7 +100,7 @@ class Thread extends Component
     #[Computed]
     public function canComment(): bool
     {
-        return auth()->user()->can('collaborate', $this->commentable);
+        return auth()->user()->can('comment', $this->commentable);
     }
 
     #[Computed]
@@ -122,7 +122,7 @@ class Thread extends Component
 
     public function add(PostComment $postComment): void
     {
-        $this->authorize('collaborate', $this->commentable);
+        $this->authorize('comment', $this->commentable);
 
         $validated = $this->validate(['body' => ['required', 'string', 'max:'.self::MAX_LENGTH]], attributes: ['body' => 'comentario']);
 
@@ -134,7 +134,7 @@ class Thread extends Component
 
     public function reply(int $id): void
     {
-        $this->authorize('collaborate', $this->commentable);
+        $this->authorize('comment', $this->commentable);
 
         $comment = $this->commentable->comments()->withTrashed()->findOrFail($id);
 
@@ -149,7 +149,7 @@ class Thread extends Component
 
     public function addReply(PostComment $postComment): void
     {
-        $this->authorize('collaborate', $this->commentable);
+        $this->authorize('comment', $this->commentable);
 
         $root = $this->commentable->comments()->withTrashed()->findOrFail((int) $this->replyingToId);
 
@@ -213,7 +213,7 @@ class Thread extends Component
      */
     private function findOwn(int $id): TaskComment|PageComment
     {
-        $this->authorize('collaborate', $this->commentable);
+        $this->authorize('comment', $this->commentable);
 
         return $this->commentable->comments()->where('user_id', auth()->id())->findOrFail($id);
     }

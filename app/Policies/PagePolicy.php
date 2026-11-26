@@ -56,9 +56,9 @@ class PagePolicy
     }
 
     /**
-     * Comment: whoever reaches the page.
+     * Comment and reply: whoever reaches the page.
      */
-    public function collaborate(User $user, Page $page): bool
+    public function comment(User $user, Page $page): bool
     {
         return $this->view($user, $page);
     }

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
  * Posts a comment or a reply (F-07, RN-10). A reply to a reply joins the
  * thread of its root, so threads stay one level deep. The author and the
  * people mentioned start following the element, and the alerts go out.
- * The caller authorizes `collaborate` first.
+ * The caller authorizes `comment` first.
  */
 class PostComment
 {

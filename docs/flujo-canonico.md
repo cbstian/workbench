@@ -220,7 +220,7 @@ Estados relevantes:
 - **Terminado cuando:** en cada Tarea se pueden adjuntar archivos y comentar, y todo cambio queda en su historial.
 
 #### F-07 · Adjuntar, comentar y revisar el historial
-- **Actor y situación:** usuario con permiso sobre la Tarea (admin del Proyecto o miembro asignado; el miembro ve también las Tareas que no tiene asignadas).
+- **Actor y situación:** usuario con permiso sobre la Tarea (admin del Proyecto o miembro asignado; el miembro ve también las Tareas que no tiene asignadas). Comentar y responder lo puede cualquiera que ve la Tarea, aunque no la tenga asignada (2026-11-26).
 - **Acción y resultado esperado:** adjunta archivos, comenta y revisa el historial de cambios de la Tarea.
 - **Criterios de aceptación:**
   - [ ] Dada una Tarea, cuando se adjunta un archivo o se comenta, entonces queda en la Tarea.
@@ -365,7 +365,7 @@ Estados relevantes:
 - **RN-20** Interfaz solo en español; el desarrollo, en inglés.
 - **RN-21** Admin y miembro ven solo los Proyectos a los que fueron asignados. El admin hace todas las acciones dentro de sus Proyectos, no crea Proyectos y puede crear miembros nuevos con acceso a los Proyectos a los que él tiene acceso.
 - **RN-22** El estado y la prioridad que toma una Tarea nueva se configuran en cada Proyecto.
-- **RN-23** El miembro ve todas las Tareas de sus Proyectos, pero solo edita las que tiene asignadas, dentro de las cuales hace todas las acciones; puede crear Tareas nuevas, asignándolas a sí mismo o al equipo del Proyecto.
+- **RN-23** El miembro ve todas las Tareas de sus Proyectos, pero solo edita las que tiene asignadas, dentro de las cuales hace todas las acciones (comentar y responder puede hacerlo en todas las que ve, RN-10); puede crear Tareas nuevas, asignándolas a sí mismo o al equipo del Proyecto.
 - **RN-24** Solo el Super admin accede a la documentación del Workspace; admins y miembros acceden a toda la documentación de sus Proyectos.
 - **RN-25** Solo el Super admin crea Workspaces y Clientes.
 - **RN-26** Solo el Super admin agrega usuarios ya existentes a un Proyecto; el admin solo puede crear miembros nuevos con acceso a sus Proyectos.
