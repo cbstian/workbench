@@ -216,7 +216,7 @@ Estados relevantes:
 ### E6 · Adjuntos, comentarios e historial
 - **Objetivo:** que cada Tarea reúna sus archivos, su conversación y la historia de sus cambios.
 - **Depende de:** E5.
-- **Cubre:** F-07 · RN-08, RN-10 (los comentarios no llevan menciones ni avisan por correo).
+- **Cubre:** F-07 · RN-08, RN-10 (comentarios en hilos de un nivel, con menciones y avisos en la bandeja de la app; sin correo).
 - **Terminado cuando:** en cada Tarea se pueden adjuntar archivos y comentar, y todo cambio queda en su historial.
 
 #### F-07 · Adjuntar, comentar y revisar el historial
@@ -224,6 +224,9 @@ Estados relevantes:
 - **Acción y resultado esperado:** adjunta archivos, comenta y revisa el historial de cambios de la Tarea.
 - **Criterios de aceptación:**
   - [ ] Dada una Tarea, cuando se adjunta un archivo o se comenta, entonces queda en la Tarea.
+  - [ ] Dado un comentario, cuando se responde, entonces la respuesta queda en el hilo de su comentario raíz (un solo nivel).
+  - [ ] Dado un comentario que menciona a alguien que puede ver la Tarea o Página, entonces esa persona recibe un aviso en su bandeja.
+  - [ ] Dado un comentario nuevo, entonces reciben aviso quienes siguen la Tarea o Página (creador, asignados, quienes comentaron o fueron mencionados), salvo quien dejó de seguirla y salvo el autor.
   - [ ] Dado un cambio en una Tarea, entonces queda en su historial de cambios.
 
 ### E7 · Vistas y filtros
@@ -349,7 +352,7 @@ Estados relevantes:
 - **RN-07** Una Tarea tiene nombre, descripción, adjuntos, comentarios, historial de cambios, fecha de inicio y término, asignados, etiquetas, estado, prioridad y subtareas. El estado es obligatorio al crear una Tarea y nunca queda vacío. La fecha de término no puede quedar antes que la de inicio.
 - **RN-08** Todo cambio en una Tarea queda en su historial de cambios.
 - **RN-09** Hay wiki a nivel de Workspace y de Proyecto, con subpáginas y solo historial de cambios (sin versiones); los archivos van dentro de las Páginas, sin biblioteca aparte; las etiquetas de wiki son por Workspace y distintas de las de tareas; se marca qué documentación ve el Cliente.
-- **RN-10** Fuera del MVP: notificaciones por correo y menciones.
+- **RN-10** Tareas y Páginas tienen comentarios con respuestas (hilos de un nivel) y menciones a quienes pueden verlas. Hay avisos en la app (campana y Bandeja) cuando alguien te menciona, responde en un hilo tuyo o comenta algo que sigues; se sigue automáticamente lo que creaste, lo que tienes asignado, lo que comentaste y donde te mencionaron, y se puede dejar de seguir. Las notificaciones por correo siguen fuera del MVP (revisado 2026-11-26).
 - **RN-11** Las Tareas de un Proyecto se ven en kanban, listado y calendario, con filtros que se recuerdan por usuario (estado, prioridad, asignado, etiqueta y rango de fechas). La Pizarra es una vista compartida del Workspace, no una cuarta vista de Tareas: filas de Proyectos (con las Tareas raíz abiertas plegables) y columnas de días, de lunes a viernes y con el fin de semana opcional. Cada celda tiene notas cortas, planificadas o hechas; una nota puede crearse ya hecha y puede apuntar a una Tarea del mismo Proyecto, y se recuerda quién la creó. La prioridad del Proyecto (ninguna, baja, media, alta, urgente) se compara entre Proyectos y es distinta de la prioridad de sus Tareas. Un Proyecto está vencido si su fecha de término es anterior a hoy y no está en pausa; una nota está vencida si su día es anterior a hoy y sigue planificada; aparte se cuentan las Tareas abiertas con término vencido. Hoy es el día en America/Santiago. Pausar es reversible y no es archivar: la fila sigue, tachada y rayada. Un día está trabajado si tiene alguna nota hecha; vacío o solo planificado no está trabajado y se nota en la celda. «No trabajados hoy» deja los Proyectos sin nota hecha hoy y no incluye los pausados. El orden de las filas es del Workspace; ocultar un Proyecto es de cada persona. El usuario cliente no ve la Pizarra. La semana y los filtros se pueden compartir.
 - **RN-12** Un Cliente tiene nombre, descripción, logo y color.
 - **RN-13** Un Proyecto tiene nombre, descripción e icono, Cliente opcional, equipo y marca de visibilidad para el Cliente; solo el Super admin lo crea. Desde E11 tiene además prioridad de Proyecto, fecha de término opcional y pausa reversible.
@@ -386,6 +389,7 @@ Abiertas: ninguna por ahora.
 - Wiki: «Wiki a nivel de workspace y proyectos, poder elegir qué documentación ve el cliente».
 - Estados y etiquetas: «por proyecto, definir por defecto al momento de crear, pero que permita modificarlos». Estados por defecto: backlog, todo, in progress, done, cancelled.
 - Alcance del MVP: «Incluir subtareas, prioridad». Notificaciones por correo y menciones quedan fuera del MVP.
+- Comentarios (2026-11-26): «las tareas y páginas deben soportar comentarios, respuestas y menciones», con alertas cuando alguien comenta algo relacionado contigo o te menciona. Se eligió bandeja en la app, seguidores automáticos, hilos de un nivel y texto plano con @menciones.
 - Nombre: «Workbench».
 - Jerarquía: «Cada usuarios debe tener un workspace como entidad superior»; clientes «como entidad superior» dentro del Workspace (Workspace > Cliente > Proyecto); «Un proyecto puede o no estar relacionado a un cliente».
 - **(2026-10-12, P-01)** «Por consola se crean los usuarios, con un comando artisan. Los workspace los van creando los mismos usuarios.» En el flujo: los usuarios se crean por consola.

@@ -39,10 +39,11 @@ class Index extends Component
         'project_priority' => 'Prioridad',
         'task_label' => 'Etiqueta de tarea',
         'task' => 'Tarea',
-        'task_comment' => 'Comentario',
+        'task_comment' => 'Comentario de tarea',
         'task_attachment' => 'Adjunto',
         'page' => 'Página',
         'page_file' => 'Archivo',
+        'page_comment' => 'Comentario de página',
         'wiki_label' => 'Etiqueta de wiki',
     ];
 

@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\PageActivityEvent;
+use App\Models\Concerns\Commentable;
+use App\Models\Concerns\HasComments;
 use App\Models\Concerns\HasPublicUuid;
 use App\Models\Concerns\InheritsWorkspace;
 use App\Models\Concerns\TracksDeleter;
@@ -9,6 +12,7 @@ use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,10 +53,10 @@ use Illuminate\Support\Str;
     'updated_by_id',
 ])]
 #[Hidden(['search_vector'])]
-class Page extends Model
+class Page extends Model implements Commentable
 {
     /** @use HasFactory<PageFactory> */
-    use HasFactory, HasPublicUuid, InheritsWorkspace, SoftDeletes, TracksDeleter;
+    use HasComments, HasFactory, HasPublicUuid, InheritsWorkspace, SoftDeletes, TracksDeleter;
 
     /**
      * Get the attributes that should be cast.
@@ -75,9 +79,6 @@ class Page extends Model
         return Project::withTrashed()->whereKey($this->project_id)->value('workspace_id');
     }
 
-    /**
-     * @return BelongsTo<Workspace, $this>
-     */
     /**
      * Whether the page is reachable: its project and every ancestor are
      * active. Children of a trashed page stay hidden without being marked
@@ -126,6 +127,9 @@ class Page extends Model
             : '';
     }
 
+    /**
+     * @return BelongsTo<Workspace, $this>
+     */
     public function workspace(): BelongsTo
     {
         return $this->belongsTo(Workspace::class);
@@ -177,5 +181,83 @@ class Page extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(PageActivity::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by_id');
+    }
+
+    /**
+     * @return HasMany<PageComment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(PageComment::class);
+    }
+
+    protected function followersTable(): string
+    {
+        return 'page_followers';
+    }
+
+    /**
+     * Whoever can see the page: the project team with wiki access, or only
+     * the super admin for the workspace wiki (RN-24).
+     *
+     * @return Collection<int, User>
+     */
+    public function mentionableUsers(): Collection
+    {
+        return $this->filterMentionable([
+            ...($this->project?->members()->get() ?? []),
+            $this->accountOwner($this->workspace_id),
+        ]);
+    }
+
+    /**
+     * The creator follows the page by default.
+     *
+     * @return list<int>
+     */
+    public function implicitFollowerIds(): array
+    {
+        return [$this->created_by_id];
+    }
+
+    public function commentableType(): string
+    {
+        return 'page';
+    }
+
+    public function commentableTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function commentableContext(): string
+    {
+        return $this->project?->name ?? 'Wiki del espacio';
+    }
+
+    public function commentableUrl(): string
+    {
+        return route('pages.show', $this);
+    }
+
+    public function recordCommentActivity(User $actor, Model $comment, bool $isDeletion = false): void
+    {
+        PageActivity::record($this, $actor, $isDeletion ? PageActivityEvent::CommentDeleted : PageActivityEvent::CommentAdded, metadata: ['comment_id' => $comment->getKey()]);
     }
 }

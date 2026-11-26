@@ -2,9 +2,9 @@
 
 use App\Actions\Tasks\StoreTaskAttachment;
 use App\Enums\WorkspaceRole;
+use App\Livewire\Comments\Thread;
 use App\Livewire\Dashboard;
 use App\Livewire\Projects\TaskBoard;
-use App\Livewire\Tasks\Comments;
 use App\Models\Client;
 use App\Models\Page;
 use App\Models\Project;
@@ -94,7 +94,7 @@ it('does not let a client user create or edit anything (A-03)', function () {
     ['clientUser' => $clientUser, 'project' => $project, 'task' => $task] = clientUserSetup();
 
     Livewire::actingAs($clientUser)->test(TaskBoard::class, ['project' => $project])->assertForbidden();
-    Livewire::actingAs($clientUser)->test(Comments::class, ['task' => $task])->assertForbidden();
+    Livewire::actingAs($clientUser)->test(Thread::class, ['commentable' => $task])->assertForbidden();
 
     expect($clientUser->can('create', [Task::class, $project]))->toBeFalse()
         ->and($clientUser->can('update', $task))->toBeFalse()

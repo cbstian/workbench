@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ImpersonationController;
+use App\Http\Controllers\OpenNotificationController;
 use App\Http\Controllers\PageFileController;
 use App\Http\Controllers\TaskAttachmentController;
 use App\Http\Middleware\EnsureCurrentWorkspace;
@@ -8,6 +9,7 @@ use App\Http\Middleware\EnsureUserIsActive;
 use App\Livewire\Board;
 use App\Livewire\Clients;
 use App\Livewire\Dashboard;
+use App\Livewire\Notifications;
 use App\Livewire\Projects;
 use App\Livewire\Roles;
 use App\Livewire\Settings;
@@ -36,6 +38,8 @@ Route::view('/', 'landing')->name('home');
 Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void {
     Route::livewire('/dashboard', Dashboard::class)->name('dashboard');
     Route::livewire('/settings', Settings\Profile::class)->name('settings.profile');
+    Route::livewire('/bandeja', Notifications\Index::class)->name('notifications.index');
+    Route::get('/bandeja/{notification}', OpenNotificationController::class)->name('notifications.open');
 
     Route::livewire('/workspaces', Workspaces\Index::class)->name('workspaces.index');
 

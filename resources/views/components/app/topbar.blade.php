@@ -1,6 +1,6 @@
 {{--
     Panel topbar: sidebar button (mobile, or desktop when collapsed), current
-    page title, theme toggle and user menu. Sticky and translucent like Notion.
+    page title, notifications bell, theme toggle and user menu. Sticky and translucent like Notion.
 --}}
 @props([
     'title' => null,
@@ -19,6 +19,7 @@
     <p class="min-w-0 flex-1 truncate text-sm text-ink">{{ $title }}</p>
 
     <div class="flex items-center gap-1">
+        <livewire:notifications.bell />
         <x-theme.toggle />
         <x-app.user-menu />
     </div>

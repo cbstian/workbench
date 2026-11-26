@@ -260,6 +260,10 @@
             <div class="mt-8">
                 <livewire:tasks.attachments :task="$editingTask" wire:key="board-attachments-{{ $editingTask->id }}-{{ $taskFormVersion }}" />
             </div>
+
+            <div class="mt-8">
+                <livewire:comments.thread :commentable="$editingTask" wire:key="board-comments-{{ $editingTask->id }}-{{ $taskFormVersion }}" />
+            </div>
         @endif
 
         <x-slot:footer>

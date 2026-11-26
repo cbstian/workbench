@@ -7,6 +7,7 @@ use App\Enums\TaskActivityEvent;
 use App\Models\Client;
 use App\Models\Page;
 use App\Models\PageActivity;
+use App\Models\PageComment;
 use App\Models\PageFile;
 use App\Models\Project;
 use App\Models\ProjectPriority;
@@ -52,6 +53,7 @@ class RestoreTrashItem
         'task_attachment' => TaskAttachment::class,
         'page' => Page::class,
         'page_file' => PageFile::class,
+        'page_comment' => PageComment::class,
         'wiki_label' => WikiLabel::class,
     ];
 

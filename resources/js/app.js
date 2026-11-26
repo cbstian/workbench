@@ -10,6 +10,7 @@ import { registerChart } from './modules/chart';
 import { registerHtmlState } from './modules/html-state';
 import { registerEmojiPicker } from './modules/emoji-picker';
 import { registerPalette } from './modules/palette';
+import { registerMentions } from './modules/mentions';
 
 registerHtmlState();
 registerPalette();
@@ -18,6 +19,7 @@ document.addEventListener('alpine:init', () => {
     registerSidebar(window.Alpine);
     registerChart(window.Alpine);
     registerEmojiPicker(window.Alpine);
+    registerMentions(window.Alpine);
 });
 
 /*

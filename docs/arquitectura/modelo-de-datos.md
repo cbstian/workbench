@@ -68,10 +68,10 @@
 | **Autorización** (spatie) | `roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions` | E3 |
 | **Clientes** | `clients`, `client_user` | E2, E3, E10 |
 | **Proyectos** | `projects`, `project_user`, `project_statuses`, `project_priorities`, `task_labels` | E4, E11 |
-| **Tareas** | `tasks`, `task_user`, `task_task_label`, `task_comments`, `task_attachments`, `task_activities` | E5, E6 |
+| **Tareas** | `tasks`, `task_user`, `task_task_label`, `task_comments`, `task_comment_mentions`, `task_followers`, `task_attachments`, `task_activities` | E5, E6 |
 | **Vistas** | `project_task_views` | E7 |
 | **Pizarra** | `board_entries`, `board_project_hides` (y columnas de `projects`) | E11 |
-| **Wiki** | `pages`, `page_files`, `page_activities`, `wiki_labels`, `page_wiki_label` | E8 |
+| **Wiki** | `pages`, `page_comments`, `page_comment_mentions`, `page_followers`, `page_files`, `page_activities`, `wiki_labels`, `page_wiki_label` | E8 |
 | **Papelera** | vista `trash_items` | E9 |
 | **Framework** | `sessions`, `password_reset_tokens`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` | — |
 
@@ -439,10 +439,25 @@ Imposible etiquetar una Tarea con una etiqueta de otro Proyecto.
 | `id`, `uuid` | | no | |
 | `workspace_id` | `bigint` | no | FK `(task_id, workspace_id) → tasks(id, workspace_id)` |
 | `task_id` | `bigint` restrict | no | |
+| `parent_id` | `bigint → task_comments` restrict | sí | comentario raíz al que responde |
 | `user_id` | `bigint → users` restrict | no | autor |
-| `body` | `text` | no | sin menciones (RN-10) |
+| `body` | `text` | no | texto plano; las menciones se guardan como `@[uuid-del-usuario]` (RN-10) |
 | `edited_at` | `timestamptz` | sí | |
 | Estándar | ✓ timestamps, borrado lógico | | |
+
+Trigger `task_comments_enforce_single_level_thread`: el padre es un comentario raíz de la misma Tarea (hilos de un nivel). Un raíz en la papelera sigue a la vista como «Comentario eliminado» mientras tenga respuestas.
+
+`page_comments` tiene la misma forma con `page_id` (FK `(page_id, workspace_id) → pages(id, workspace_id)`) y su trigger `page_comments_enforce_single_level_thread`.
+
+### 5.15.1 Menciones y seguidores
+| Tabla | Columnas | Nota |
+|---|---|---|
+| `task_comment_mentions` / `page_comment_mentions` | `task_comment_id` / `page_comment_id`, `user_id` (PK compuesta, cascade) | quiénes quedan mencionados en el comentario; se resincroniza al editar |
+| `task_followers` / `page_followers` | `task_id` / `page_id`, `user_id` (PK), `is_following`, timestamps | elección explícita. `is_following = false` recuerda que alguien dejó de seguir, para que el seguimiento automático no lo vuelva a agregar |
+
+Siguen una Tarea su creador y sus asignados (implícito, calculado al avisar), y quienes comentan o son mencionados (fila en `task_followers`). En una Página, su creador y quienes comentan o son mencionados.
+
+Los avisos usan la tabla `notifications` de Laravel (canal `database`): `type` es `comment.mention`, `comment.reply` o `comment.follow` y `data` guarda el comentario, la Tarea o Página, el actor y un extracto, de modo que la bandeja se lee sin joins.
 
 ### 5.16 `task_attachments` y 5.17 `page_files`
 Misma estructura; difieren en el dueño (`task_id` / `page_id`). Se mantienen en tablas separadas para conservar FK reales (ver D-07).
@@ -664,7 +679,7 @@ Se lee con un modelo Eloquent de solo lectura (`TrashItem`), paginado por `delet
 | Agregado | Eventos |
 |---|---|
 | Tarea | `created`, `updated` (nombre, descripción, fechas), `status_changed`, `priority_changed`, `assignee_added`, `assignee_removed`, `label_added`, `label_removed`, `subtask_added`, `subtask_removed`, `moved` (cambio de padre), `comment_added`, `comment_deleted`, `attachment_added`, `attachment_deleted`, `deleted`, `restored` |
-| Página | `created`, `updated` (título, ícono, visibilidad), `body_updated`, `moved`, `label_added`, `label_removed`, `file_added`, `file_deleted`, `deleted`, `restored` |
+| Página | `created`, `updated` (título, ícono, visibilidad), `body_updated`, `moved`, `label_added`, `label_removed`, `file_added`, `file_deleted`, `comment_added`, `comment_deleted`, `deleted`, `restored` |
 
 Se mantiene como `varchar` + enum PHP (`TaskActivityEvent`, `PageActivityEvent`), sin `CHECK`, para poder agregar eventos sin migración.
 
@@ -741,6 +756,8 @@ Las migraciones de dominio se reescribieron (no hay datos de producción); `migr
 | `2026_11_10_000443_create_trash_items_view` | vista `trash_items` (incluye Workspaces; el índice de papelera de `workspaces` es por `account_id`) |
 | `2026_11_24_000000_create_board_tables` | prioridad, término, pausa y orden de `projects`; `board_entries`; `board_project_hides` |
 | `2026_11_24_000001_sync_board_permissions` | vuelve a correr `SyncRolePermissions` para otorgar `board.update` |
+| `2026_11_26_155048_add_comment_threads_mentions_and_followers` | `task_comments.parent_id`, `page_comments`, `*_comment_mentions`, `*_followers` + `*_comments_enforce_single_level_thread`; recrea `trash_items` con `page_comment` |
+| `2026_11_26_155049_create_notifications_table` | `notifications` de Laravel (bandeja de avisos) |
 
 Se eliminaron `add_access_columns_to_users_table` y `add_workspace_and_client_to_projects_table` (absorbidas).
 
@@ -755,6 +772,7 @@ Se eliminaron `add_access_columns_to_users_table` y `add_workspace_and_client_to
 | Pivotes `ProjectMember`, `ClientMember`, `TaskAssignee`, `TaskLabelAssignment`, `PageLabelAssignment` | completan la columna de tenant del pivote (`workspace_id` o `project_id`) para las FK compuestas |
 | `TrashItem` | modelo de solo lectura sobre la vista, con `scopeInWorkspace()` |
 | Enums `StatusCategory`, `TaskActivityEvent`, `PageActivityEvent` | casts de `category` y `event` |
+| `Concerns\Commentable`, `Concerns\HasComments`, `Concerns\IsComment` | contrato común de Task y Page para comentar, mencionar y seguir; comportamiento compartido de `TaskComment` y `PageComment` |
 
 ### 11.3 Tests
 
@@ -787,7 +805,7 @@ Columnas o tablas que **no** se crean ahora, pero que el modelo admite sin redis
 | Qué ve el usuario cliente de una Tarea | P-04, P-06 | `tasks.is_visible_to_client`; `task_comments.is_internal` |
 | Permisos del usuario cliente | P-05 | permisos de spatie con `team_id` o columna `client_user.access_level` |
 | Visibilidad de documentación por sección o archivo | P-14 | `page_files.is_visible_to_client`; tabla `page_client` para Páginas del Workspace visibles a un Cliente |
-| Notificaciones y menciones | RN-10 | tabla `notifications` de Laravel; `comment_mentions (comment_id, user_id)` |
+| Notificaciones por correo o en tiempo real | RN-10 | agregar `mail` o `broadcast` a `via()` de `App\Notifications\Comments\CommentNotification` (y `ShouldQueue`); el resto no cambia |
 | Versiones de Páginas | P-15 | `page_revisions (page_id, body, created_by_id, created_at)` |
 | Archivado | P-24 | `archived_at` en Proyectos y Tareas |
 | Identificador corto de Tarea (`WB-123`) | — | `projects.key` + `tasks.number` con secuencia por Proyecto |

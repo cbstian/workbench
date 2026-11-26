@@ -50,3 +50,6 @@ Genera:
 | `App\Livewire\Projects\Show` | `GET /projects/{project}` (`projects.show`) | Página del proyecto (encabezado; tareas y wiki llegarán aquí) |
 | `App\Livewire\Navigation\ProjectLinks` | Dentro del sidebar | Lista de proyectos bajo «Proyectos»; se refresca con `projects-changed` |
 | `App\Livewire\Settings\Profile` | `GET /settings` (`settings.profile`) | Perfil y contraseña (Form objects `ProfileForm`, `PasswordForm`); página de referencia de formularios |
+| `App\Livewire\Comments\Thread` | Dentro de Tarea (página y panel lateral) y Página de wiki | Comentarios en hilos de un nivel, @menciones con autocompletado (`resources/js/modules/mentions.js`) y botón Seguir |
+| `App\Livewire\Notifications\Bell` | Topbar | Campana con avisos sin leer; se refresca cada 30 s y con `notifications-changed` |
+| `App\Livewire\Notifications\Index` | `GET /bandeja` (`notifications.index`) | Bandeja de avisos con filtros por estado y tipo; `GET /bandeja/{id}` abre el aviso en su comentario |

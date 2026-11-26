@@ -88,6 +88,8 @@ class PageActivity extends Model
             PageActivityEvent::LabelRemoved => 'quitó la etiqueta «'.($metadata['label_name'] ?? '—').'»',
             PageActivityEvent::FileAdded => 'subió «'.($metadata['file_name'] ?? 'un archivo').'»',
             PageActivityEvent::FileDeleted => 'eliminó el archivo «'.($metadata['file_name'] ?? '—').'»',
+            PageActivityEvent::CommentAdded => 'comentó',
+            PageActivityEvent::CommentDeleted => 'eliminó un comentario',
             PageActivityEvent::Deleted => 'envió la página a la papelera',
             PageActivityEvent::Restored => 'restauró la página',
         };

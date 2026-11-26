@@ -15,6 +15,8 @@ enum PageActivityEvent: string
     case LabelRemoved = 'label_removed';
     case FileAdded = 'file_added';
     case FileDeleted = 'file_deleted';
+    case CommentAdded = 'comment_added';
+    case CommentDeleted = 'comment_deleted';
     case Deleted = 'deleted';
     case Restored = 'restored';
 }

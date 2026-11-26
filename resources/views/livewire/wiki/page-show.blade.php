@@ -109,6 +109,10 @@
             @endif
 
             <livewire:wiki.page-files :page="$page" :editing="$editing" wire:key="page-files-{{ $page->id }}" />
+
+            @unless ($editing)
+                <livewire:comments.thread :commentable="$page" wire:key="page-comments-{{ $page->id }}" />
+            @endunless
         </div>
 
         <aside class="min-w-0 lg:col-start-2 xl:col-start-auto">

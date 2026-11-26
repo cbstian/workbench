@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\TaskActivityEvent;
+use App\Models\Concerns\Commentable;
+use App\Models\Concerns\HasComments;
 use App\Models\Concerns\HasPublicUuid;
 use App\Models\Concerns\InheritsWorkspace;
 use App\Models\Concerns\TracksDeleter;
@@ -9,6 +12,7 @@ use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,10 +57,10 @@ use Illuminate\Support\Carbon;
     'created_by_id',
 ])]
 #[Hidden(['search_vector'])]
-class Task extends Model
+class Task extends Model implements Commentable
 {
     /** @use HasFactory<TaskFactory> */
-    use HasFactory, HasPublicUuid, InheritsWorkspace, SoftDeletes, TracksDeleter;
+    use HasComments, HasFactory, HasPublicUuid, InheritsWorkspace, SoftDeletes, TracksDeleter;
 
     /**
      * Get the attributes that should be cast.
@@ -190,5 +194,61 @@ class Task extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(TaskActivity::class);
+    }
+
+    protected function followersTable(): string
+    {
+        return 'task_followers';
+    }
+
+    /**
+     * Whoever can see the task: its project team and the super admin.
+     *
+     * @return Collection<int, User>
+     */
+    public function mentionableUsers(): Collection
+    {
+        return $this->filterMentionable([
+            ...$this->project->members()->get(),
+            $this->accountOwner($this->workspace_id),
+        ]);
+    }
+
+    /**
+     * The creator and the assignees follow the task by default.
+     *
+     * @return list<int>
+     */
+    public function implicitFollowerIds(): array
+    {
+        return array_values(array_unique(array_filter([
+            $this->created_by_id,
+            ...$this->assignees()->pluck('users.id')->map(fn ($id): int => (int) $id)->all(),
+        ])));
+    }
+
+    public function commentableType(): string
+    {
+        return 'task';
+    }
+
+    public function commentableTitle(): string
+    {
+        return $this->name;
+    }
+
+    public function commentableContext(): string
+    {
+        return $this->project?->name ?? '';
+    }
+
+    public function commentableUrl(): string
+    {
+        return route('tasks.show', $this);
+    }
+
+    public function recordCommentActivity(User $actor, Model $comment, bool $isDeletion = false): void
+    {
+        TaskActivity::record($this, $actor, $isDeletion ? TaskActivityEvent::CommentDeleted : TaskActivityEvent::CommentAdded, metadata: ['comment_id' => $comment->getKey()]);
     }
 }

@@ -31,6 +31,7 @@ return [
             'label' => null,
             'items' => [
                 ['label' => 'Inicio', 'route' => 'dashboard', 'icon' => 'home'],
+                ['label' => 'Bandeja', 'route' => 'notifications.index', 'icon' => 'inbox'],
                 ['label' => 'Pizarra', 'route' => 'board.index', 'icon' => 'view-columns', 'can' => 'view-projects'],
                 ['label' => 'Tareas', 'route' => 'tasks.index', 'icon' => 'rectangle-stack', 'can' => 'view-projects'],
             ],

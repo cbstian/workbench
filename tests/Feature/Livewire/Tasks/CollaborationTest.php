@@ -3,8 +3,8 @@
 use App\Actions\Tasks\StoreTaskAttachment;
 use App\Enums\TaskActivityEvent;
 use App\Enums\WorkspaceRole;
+use App\Livewire\Comments\Thread;
 use App\Livewire\Tasks\Attachments;
-use App\Livewire\Tasks\Comments;
 use App\Livewire\Tasks\Show;
 use App\Livewire\Trash\Index as TrashIndex;
 use App\Models\Project;
@@ -39,7 +39,7 @@ it('shows comments and attachments on the task page', function () {
     $this->actingAs($member)
         ->get(route('tasks.show', $task))
         ->assertOk()
-        ->assertSeeLivewire(Comments::class)
+        ->assertSeeLivewire(Thread::class)
         ->assertSeeLivewire(Attachments::class);
 });
 
@@ -47,7 +47,7 @@ it('lets an assigned member comment, recorded in the history (F-07)', function (
     ['task' => $task, 'member' => $member] = collaborationTask();
 
     Livewire::actingAs($member)
-        ->test(Comments::class, ['task' => $task])
+        ->test(Thread::class, ['commentable' => $task])
         ->set('body', "Primera línea\nSegunda línea")
         ->call('add')
         ->assertHasNoErrors()
@@ -63,7 +63,7 @@ it('lets an assigned member comment, recorded in the history (F-07)', function (
 it('requires a comment body', function () {
     ['task' => $task, 'member' => $member] = collaborationTask();
 
-    Livewire::actingAs($member)->test(Comments::class, ['task' => $task])
+    Livewire::actingAs($member)->test(Thread::class, ['commentable' => $task])
         ->set('body', '   ')
         ->call('add')
         ->assertHasErrors(['body' => 'required']);
@@ -73,7 +73,7 @@ it('keeps members off tasks not assigned to them, while they still see them (RN-
     ['task' => $task, 'teammate' => $teammate, 'member' => $member] = collaborationTask();
     $task->comments()->create(['user_id' => $member->id, 'body' => 'Visible para el equipo']);
 
-    Livewire::actingAs($teammate)->test(Comments::class, ['task' => $task])
+    Livewire::actingAs($teammate)->test(Thread::class, ['commentable' => $task])
         ->assertSeeText('Visible para el equipo')
         ->assertDontSee('Escribe un comentario')
         ->set('body', 'No debería')
@@ -89,7 +89,7 @@ it('lets authors edit their comments and admins delete any', function () {
     ['task' => $task, 'member' => $member, 'admin' => $admin] = collaborationTask();
     $comment = $task->comments()->create(['user_id' => $member->id, 'body' => 'Original']);
 
-    Livewire::actingAs($member)->test(Comments::class, ['task' => $task])
+    Livewire::actingAs($member)->test(Thread::class, ['commentable' => $task])
         ->call('edit', $comment->id)
         ->set('editingBody', 'Corregido')
         ->call('saveEdit')
@@ -98,8 +98,8 @@ it('lets authors edit their comments and admins delete any', function () {
 
     expect($comment->fresh()->edited_at)->not->toBeNull();
 
-    Livewire::actingAs($admin)->test(Comments::class, ['task' => $task])->call('edit', $comment->id)->assertNotFound();
-    Livewire::actingAs($admin)->test(Comments::class, ['task' => $task])->call('delete', $comment->id);
+    Livewire::actingAs($admin)->test(Thread::class, ['commentable' => $task])->call('edit', $comment->id)->assertNotFound();
+    Livewire::actingAs($admin)->test(Thread::class, ['commentable' => $task])->call('delete', $comment->id);
 
     expect($comment->fresh()->trashed())->toBeTrue()
         ->and($comment->fresh()->deleted_by_id)->toBe($admin->id)
@@ -111,7 +111,7 @@ it('does not let a member delete another person\'s comment', function () {
     $task->assignees()->attach($teammate);
     $comment = $task->comments()->create(['user_id' => $teammate->id, 'body' => 'Ajeno']);
 
-    Livewire::actingAs($member)->test(Comments::class, ['task' => $task])->call('delete', $comment->id)->assertForbidden();
+    Livewire::actingAs($member)->test(Thread::class, ['commentable' => $task])->call('delete', $comment->id)->assertForbidden();
 
     expect($comment->fresh()->trashed())->toBeFalse();
 });

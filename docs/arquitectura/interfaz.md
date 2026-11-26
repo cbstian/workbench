@@ -6,7 +6,7 @@
 
 ```
 ┌──────────────┬───────────────────────────────────────────────┐
-│ Sidebar      │ Topbar: [»] Título            [tema] [avatar] │
+│ Sidebar      │ Topbar: [»] Título   [avisos] [tema] [avatar] │
 │ (240 px)     ├───────────────────────────────────────────────┤
 │ Inicio       │ <main> — ancho completo, padding lateral      │
 │ Espacio…     │   <x-ui.page>                                 │
@@ -22,7 +22,7 @@
 | Layout | `resources/views/layouts/app.blade.php` | Sidebar + topbar + `<main>`; incluye `<x-toast />` y `<x-dialog />` una sola vez |
 | Sidebar | `components/app/sidebar.blade.php` | Se dibuja desde `config/navigation.php` |
 | Estado del sidebar | `resources/js/modules/sidebar.js` + `components/app/sidebar-init.blade.php` | Store Alpine `sidebar` |
-| Topbar | `components/app/topbar.blade.php` | Botón de sidebar (móvil, o escritorio si está colapsado), título, tema, menú de usuario |
+| Topbar | `components/app/topbar.blade.php` | Botón de sidebar (móvil, o escritorio si está colapsado), título, campana de avisos (`livewire:notifications.bell`), tema, menú de usuario |
 
 ### Sidebar colapsable
 
