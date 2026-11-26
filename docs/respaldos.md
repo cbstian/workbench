@@ -19,7 +19,7 @@ Se excluye `storage/app/private/livewire-tmp` (subidas temporales de Livewire).
   - `backups-remote`: bucket S3 compatible (Backblaze B2, Cloudflare R2, Wasabi, AWS…) fuera del VPS.
   - Si un destino falla, se guarda igual en el otro y llega un correo de error por el que falló.
 - Cifrado AES-256 con `BACKUP_ARCHIVE_PASSWORD`. Tras crear el ZIP se verifica que abra (`verify_backup`).
-- Correo solo cuando algo sale mal (respaldo fallido, limpieza fallida o respaldo viejo/demasiado grande). Destinatario: `BACKUP_NOTIFICATION_EMAIL`. Requiere un `MAIL_MAILER` real en producción.
+- Correo solo cuando algo sale mal (respaldo fallido, limpieza fallida o respaldo viejo/demasiado grande). Destinatario: `BACKUP_NOTIFICATION_EMAIL`. En producción se envía por Resend (`MAIL_MAILER=resend`, `RESEND_API_KEY`, y `MAIL_FROM_ADDRESS` en un dominio verificado en Resend).
 - Retención (`backup:clean`): todos los de 7 días, uno diario por 16 días, uno semanal por 8 semanas, uno mensual por 4 meses, uno anual por 2 años; tope de 5000 MB por destino.
 
 Variables del `.env`:
