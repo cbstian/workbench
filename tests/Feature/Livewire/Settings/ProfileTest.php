@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ColorPalette;
 use App\Livewire\Settings\Profile;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -71,4 +72,36 @@ it('keeps the password when the current one is wrong', function () {
         ->assertHasErrors(['passwordForm.current_password' => 'current_password']);
 
     expect(Hash::check('old-password', $user->fresh()->password))->toBeTrue();
+});
+
+it('saves the chosen palette and applies it without reloading', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Profile::class)
+        ->assertSet('palette', 'roble')
+        ->set('palette', 'oceano')
+        ->assertHasNoErrors()
+        ->assertDispatched('palette-changed', palette: 'oceano');
+
+    expect($user->fresh()->palette)->toBe(ColorPalette::Oceano);
+});
+
+it('rejects a palette that does not exist', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Profile::class)
+        ->set('palette', 'neon')
+        ->assertHasErrors(['palette'])
+        ->assertNotDispatched('palette-changed');
+
+    expect($user->fresh()->palette)->toBe(ColorPalette::Roble);
+});
+
+it('renders the user palette on the html element', function () {
+    $this->actingAs(User::factory()->create(['palette' => ColorPalette::Bosque]))
+        ->get(route('settings.profile'))
+        ->assertOk()
+        ->assertSee('data-palette="bosque"', escape: false);
 });

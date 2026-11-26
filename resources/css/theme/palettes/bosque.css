@@ -1,0 +1,98 @@
+/*
+ * Bosque — sage green accent with soft green-tinted neutrals.
+ *
+ * Its accent is green, so the third chart series (green by default) is swapped
+ * for oak to keep the series distinguishable.
+ * Contract and how to add a palette: resources/css/theme/palettes/index.css.
+ */
+@layer base {
+    [data-palette='bosque'] {
+        /* Scales (same in light and dark) */
+        --wb-primary-50: #f4f8f5;
+        --wb-primary-100: #e5efe7;
+        --wb-primary-200: #cbdecf;
+        --wb-primary-300: #a6c5ad;
+        --wb-primary-400: #78a382;
+        --wb-primary-500: #4f7a5a;
+        --wb-primary-600: #42664b;
+        --wb-primary-700: #37543e;
+        --wb-primary-800: #2d4433;
+        --wb-primary-900: #25372a;
+        --wb-primary-950: #16221a;
+
+        --wb-secondary-50: #f9faf9;
+        --wb-secondary-100: #f2f4f2;
+        --wb-secondary-200: #e4e8e4;
+        --wb-secondary-300: #cfd5d0;
+        --wb-secondary-400: #a0a9a2;
+        --wb-secondary-500: #747e76;
+        --wb-secondary-600: #5a635c;
+        --wb-secondary-700: #474e49;
+        --wb-secondary-800: #323833;
+        --wb-secondary-900: #262b27;
+        --wb-secondary-950: #171a18;
+
+        --wb-gray-50: #fafbfa;
+        --wb-gray-100: #f5f7f4;
+        --wb-gray-200: #eaede9;
+        --wb-gray-300: #dde2dc;
+        --wb-gray-400: #b0b8b1;
+        --wb-gray-500: #8c948d;
+        --wb-gray-600: #6c746d;
+        --wb-gray-700: #535a54;
+        --wb-gray-800: #2e332f;
+        --wb-gray-900: #242825;
+        --wb-gray-950: #161917;
+
+        --wb-dark-50: #f3f5f3;
+        --wb-dark-100: #e4e8e4;
+        --wb-dark-200: #ced4cf;
+        --wb-dark-300: #a4ada5;
+        --wb-dark-400: #868f87;
+        --wb-dark-500: #69726a;
+        --wb-dark-600: #3c433d;
+        --wb-dark-700: #303631;
+        --wb-dark-800: #222723;
+        --wb-dark-900: #161a17;
+        --wb-dark-950: #0f1210;
+
+        /* Surfaces — light */
+        --wb-canvas: #ffffff;
+        --wb-sidebar: #f5f7f4;
+        --wb-surface: #ffffff;
+        --wb-surface-muted: #fafbfa;
+        --wb-elevated: #ffffff;
+        --wb-edge: #cfd5d0;
+        --wb-ink: #2e332f;
+        --wb-ink-muted: #6c746d;
+        --wb-ink-subtle: #a0a9a2;
+        --wb-line: #eaede9;
+        --wb-line-strong: #dde2dc;
+        --wb-chart-1: #4f7a5a;
+        --wb-glow-a: rgb(120 163 130 / 0.32);
+        --wb-glow-b: rgb(176 184 177 / 0.2);
+
+        /* Overrides of shared tokens (both modes) */
+        --wb-chart-3: #8f6b4a;
+    }
+
+    :is(.dark[data-palette='bosque'], .dark [data-palette='bosque']) {
+        /* Surfaces — dark */
+        --wb-canvas: #161a17;
+        --wb-sidebar: #1b201c;
+        --wb-surface: #222723;
+        --wb-surface-muted: #1a1e1b;
+        --wb-elevated: #282e29;
+        --wb-edge: #474e49;
+        --wb-ink: #e4e8e4;
+        --wb-ink-muted: #99a29a;
+        --wb-ink-subtle: #69726a;
+        --wb-line: #2b312c;
+        --wb-line-strong: #3c433d;
+        --wb-chart-1: #78a382;
+        --wb-glow-a: rgb(55 84 62 / 0.55);
+        --wb-glow-b: rgb(166 197 173 / 0.08);
+
+        --wb-chart-3: #b9976f;
+    }
+}

@@ -4,6 +4,8 @@
     - Applies the stored/system theme before first paint (<x-theme.init />).
     - Loads self-hosted fonts (@fonts), TallStackUI, Livewire and Vite assets.
     - Keeps the `dark` class on <html> in sync through TallStackUI's darkTheme store.
+    - Renders the user's color palette as data-palette (guests get the default),
+      see resources/css/theme/palettes/index.css.
     - Optional `head` slot for layout-specific <head> content (e.g. sidebar state).
 
     Usage: <x-layouts::base title="Página">...</x-layouts::base>
@@ -14,6 +16,7 @@
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+      data-palette="{{ (auth()->user()?->palette ?? \App\Enums\ColorPalette::default())->value }}"
       x-data="tallstackui_darkTheme({ default: 'system' })"
       x-bind:class="{ 'dark': darkTheme }">
     <head>

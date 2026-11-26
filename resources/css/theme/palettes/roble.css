@@ -1,0 +1,92 @@
+/*
+ * Roble — the original Workbench palette and the default one.
+ *
+ * Oak/walnut accent taken from the brand block, warm Notion-like neutrals.
+ * Contract and how to add a palette: resources/css/theme/palettes/index.css.
+ */
+@layer base {
+    [data-palette='roble'] {
+        /* Scales (same in light and dark) */
+        --wb-primary-50: #faf7f3;
+        --wb-primary-100: #f3ece3;
+        --wb-primary-200: #e6d7c5;
+        --wb-primary-300: #d4bc9f;
+        --wb-primary-400: #b9976f;
+        --wb-primary-500: #8f6b4a;
+        --wb-primary-600: #7a5a3e;
+        --wb-primary-700: #644934;
+        --wb-primary-800: #4f3a2a;
+        --wb-primary-900: #3e2e22;
+        --wb-primary-950: #241a13;
+
+        --wb-secondary-50: #fafaf9;
+        --wb-secondary-100: #f4f3f1;
+        --wb-secondary-200: #e7e5e1;
+        --wb-secondary-300: #d3d0ca;
+        --wb-secondary-400: #a8a49c;
+        --wb-secondary-500: #7d7970;
+        --wb-secondary-600: #625f57;
+        --wb-secondary-700: #4d4a44;
+        --wb-secondary-800: #37352f;
+        --wb-secondary-900: #2a2925;
+        --wb-secondary-950: #1a1917;
+
+        --wb-gray-50: #fbfbfa;
+        --wb-gray-100: #f7f6f3;
+        --wb-gray-200: #edece9;
+        --wb-gray-300: #e0deda;
+        --wb-gray-400: #b4b2ad;
+        --wb-gray-500: #8f8d88;
+        --wb-gray-600: #6f6d68;
+        --wb-gray-700: #55534e;
+        --wb-gray-800: #37352f;
+        --wb-gray-900: #2a2925;
+        --wb-gray-950: #1a1917;
+
+        --wb-dark-50: #f5f5f4;
+        --wb-dark-100: #e6e5e3;
+        --wb-dark-200: #d2d1ce;
+        --wb-dark-300: #a9a8a4;
+        --wb-dark-400: #8a8985;
+        --wb-dark-500: #6b6a66;
+        --wb-dark-600: #3f3e3b;
+        --wb-dark-700: #33322f;
+        --wb-dark-800: #252524;
+        --wb-dark-900: #191918;
+        --wb-dark-950: #121211;
+
+        /* Surfaces — light */
+        --wb-canvas: #ffffff;
+        --wb-sidebar: #f7f7f5;
+        --wb-surface: #ffffff;
+        --wb-surface-muted: #fbfbfa;
+        --wb-elevated: #ffffff;
+        --wb-edge: #d3d0ca;
+        --wb-ink: #37352f;
+        --wb-ink-muted: #787774;
+        --wb-ink-subtle: #a5a29c;
+        --wb-line: #edece9;
+        --wb-line-strong: #e0deda;
+        --wb-chart-1: #8f6b4a;
+        --wb-glow-a: rgb(216 180 142 / 0.38);
+        --wb-glow-b: rgb(180 178 173 / 0.2);
+    }
+
+    :is(.dark[data-palette='roble'], .dark [data-palette='roble']) {
+        /* Surfaces — dark */
+        --wb-canvas: #191918;
+        --wb-sidebar: #202020;
+        --wb-surface: #252524;
+        --wb-surface-muted: #1f1f1e;
+        --wb-elevated: #2b2b29;
+        --wb-edge: #4a4945;
+        --wb-ink: #e6e5e3;
+        --wb-ink-muted: #9b9a97;
+        --wb-ink-subtle: #6b6a66;
+        --wb-line: #2f2f2d;
+        --wb-line-strong: #3f3e3b;
+        --wb-chart-1: #b9976f;
+        --wb-glow-a: rgb(75 52 41 / 0.55);
+        --wb-glow-b: rgb(220 182 124 / 0.08);
+    }
+}

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ColorPalette;
 use App\Enums\WorkspaceRole;
 use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Settings\Profile;
@@ -161,6 +162,19 @@ it('blocks account changes of the impersonated user', function () {
         ->call('saveProfile');
 
     expect($member->fresh()->name)->toBe('Mario Miembro');
+});
+
+it('does not change the palette of the impersonated user', function () {
+    ['owner' => $owner, 'member' => $member] = impersonationSetup();
+
+    $this->actingAs($owner)->post(route('impersonation.start', $member->uuid));
+
+    Livewire::test(Profile::class)
+        ->set('palette', 'bosque')
+        ->assertSet('palette', 'roble')
+        ->assertNotDispatched('palette-changed');
+
+    expect($member->fresh()->palette)->toBe(ColorPalette::Roble);
 });
 
 it('brings the super admin back if the impersonated user is deactivated', function () {

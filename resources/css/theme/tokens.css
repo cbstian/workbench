@@ -1,35 +1,26 @@
 /*
  * Semantic design tokens.
  *
- * Every token has a light value (:root) and a dark value (.dark). Markup uses
- * the Tailwind utilities generated from @theme inline below, for example:
+ * Markup uses the Tailwind utilities generated from @theme inline below, for
+ * example:
  *
  *   bg-canvas  bg-sidebar  bg-surface  text-ink  text-ink-muted  border-line
  *
- * so switching themes never requires `dark:` variants in application views.
+ * so switching mode or palette never requires `dark:` variants in views.
+ *
+ * Where each value comes from:
+ *   - Palette surfaces (canvas, sidebar, surface, ink, line…): set by the
+ *     active palette, see resources/css/theme/palettes/index.css.
+ *   - Derived (accent, ring, today, hover, active, scrollbar, grid dot):
+ *     computed below from the palette, so a new palette gets them for free.
+ *   - Shared (priorities, overdue, chart-2…6, overlay, brand): defined below,
+ *     the same for every palette unless a palette overrides them.
  */
 @layer base {
+    /* Shared — light */
     :root {
-        --wb-canvas: #ffffff;
-        --wb-sidebar: #f7f7f5;
-        --wb-surface: #ffffff;
-        --wb-surface-muted: #fbfbfa;
-        --wb-ink: #37352f;
-        --wb-ink-muted: #787774;
-        --wb-ink-subtle: #a5a29c;
-        --wb-line: #edece9;
-        --wb-line-strong: #e0deda;
-        --wb-hover: rgb(55 53 47 / 0.06);
-        --wb-active: rgb(55 53 47 / 0.09);
-        --wb-accent: var(--color-primary-500);
-        --wb-ring: rgb(143 107 74 / 0.35);
-        --wb-scrollbar-thumb: rgb(55 53 47 / 0.18);
-        --wb-scrollbar-thumb-hover: rgb(55 53 47 / 0.32);
-
-        /* Overlays (slide, modal): dimmed backdrop and a raised panel with a visible edge */
+        /* Overlays (slide, modal): dimmed backdrop behind a raised panel */
         --wb-overlay: rgb(25 23 20 / 0.45);
-        --wb-elevated: #ffffff;
-        --wb-edge: #d3d0ca;
 
         /* Project priority dots and board marks (E11). Not the chart series. */
         --wb-priority-none: #c4c2bc;
@@ -37,59 +28,33 @@
         --wb-priority-medium: #c2922a;
         --wb-priority-high: #d9730d;
         --wb-priority-urgent: #c4554d;
-        --wb-today: rgb(143 107 74 / 0.14);
         --wb-overdue: #c4554d;
 
-        /* Chart series (ApexCharts, in order). Oak first, then Notion-like hues */
-        --wb-chart-1: #8f6b4a;
+        /* Chart series 2…6 (ApexCharts, in order). Series 1 is the palette accent */
         --wb-chart-2: #337ea9;
         --wb-chart-3: #448361;
         --wb-chart-4: #d9730d;
         --wb-chart-5: #9065b0;
         --wb-chart-6: #c14c8a;
 
-        /* Brand mark */
+        /* Brand mark: the oak block of the logo, in every palette */
         --wb-brand-tile: #d8b48e;
         --wb-brand-edge: #b98f66;
         --wb-brand-glyph: #fbfaf8;
         --wb-brand-shadow: rgb(138 104 71 / 0.35);
-
-        /* Landing backdrop */
-        --wb-glow-a: rgb(216 180 142 / 0.38);
-        --wb-glow-b: rgb(180 178 173 / 0.2);
-        --wb-grid-dot: rgb(55 53 47 / 0.09);
     }
 
+    /* Shared — dark */
     .dark {
-        --wb-canvas: #191918;
-        --wb-sidebar: #202020;
-        --wb-surface: #252524;
-        --wb-surface-muted: #1f1f1e;
-        --wb-ink: #e6e5e3;
-        --wb-ink-muted: #9b9a97;
-        --wb-ink-subtle: #6b6a66;
-        --wb-line: #2f2f2d;
-        --wb-line-strong: #3f3e3b;
-        --wb-hover: rgb(255 255 255 / 0.055);
-        --wb-active: rgb(255 255 255 / 0.085);
-        --wb-accent: var(--color-primary-400);
-        --wb-ring: rgb(185 151 111 / 0.4);
-        --wb-scrollbar-thumb: rgb(255 255 255 / 0.14);
-        --wb-scrollbar-thumb-hover: rgb(255 255 255 / 0.26);
-
         --wb-overlay: rgb(0 0 0 / 0.62);
-        --wb-elevated: #2b2b29;
-        --wb-edge: #4a4945;
 
         --wb-priority-none: #6b6a66;
         --wb-priority-low: #529cca;
         --wb-priority-medium: #e0b14a;
         --wb-priority-high: #ffa344;
         --wb-priority-urgent: #e06a62;
-        --wb-today: rgb(185 151 111 / 0.18);
         --wb-overdue: #e06a62;
 
-        --wb-chart-1: #b9976f;
         --wb-chart-2: #529cca;
         --wb-chart-3: #4dab9a;
         --wb-chart-4: #ffa344;
@@ -100,10 +65,30 @@
         --wb-brand-edge: #2e1f18;
         --wb-brand-glyph: #dcb67c;
         --wb-brand-shadow: rgb(28 19 14 / 0.35);
+    }
 
-        --wb-glow-a: rgb(75 52 41 / 0.55);
-        --wb-glow-b: rgb(220 182 124 / 0.08);
-        --wb-grid-dot: rgb(255 255 255 / 0.06);
+    /* Derived from the palette — light */
+    [data-palette] {
+        --wb-accent: var(--wb-primary-500);
+        --wb-ring: color-mix(in srgb, var(--wb-primary-500) 35%, transparent);
+        --wb-today: color-mix(in srgb, var(--wb-primary-500) 14%, transparent);
+        --wb-hover: color-mix(in srgb, var(--wb-ink) 6%, transparent);
+        --wb-active: color-mix(in srgb, var(--wb-ink) 9%, transparent);
+        --wb-scrollbar-thumb: color-mix(in srgb, var(--wb-ink) 18%, transparent);
+        --wb-scrollbar-thumb-hover: color-mix(in srgb, var(--wb-ink) 32%, transparent);
+        --wb-grid-dot: color-mix(in srgb, var(--wb-ink) 9%, transparent);
+    }
+
+    /* Derived from the palette — dark */
+    :is(.dark[data-palette], .dark [data-palette]) {
+        --wb-accent: var(--wb-primary-400);
+        --wb-ring: color-mix(in srgb, var(--wb-primary-400) 40%, transparent);
+        --wb-today: color-mix(in srgb, var(--wb-primary-400) 18%, transparent);
+        --wb-hover: color-mix(in srgb, var(--wb-ink) 6%, transparent);
+        --wb-active: color-mix(in srgb, var(--wb-ink) 9%, transparent);
+        --wb-scrollbar-thumb: color-mix(in srgb, var(--wb-ink) 15%, transparent);
+        --wb-scrollbar-thumb-hover: color-mix(in srgb, var(--wb-ink) 28%, transparent);
+        --wb-grid-dot: color-mix(in srgb, var(--wb-ink) 7%, transparent);
     }
 }
 

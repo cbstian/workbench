@@ -35,9 +35,21 @@
             </x-ui.form-section>
         </form>
 
-        <x-ui.form-section title="Apariencia" description="Se guarda en este navegador. «Sistema» sigue la preferencia de tu equipo.">
-            <div class="space-y-4">
-                <x-theme-switch block />
+        <x-ui.form-section title="Apariencia" description="La paleta se guarda en tu cuenta. El modo claro u oscuro se guarda en este navegador; «Sistema» sigue la preferencia de tu equipo.">
+            <div class="space-y-6">
+                <fieldset>
+                    <legend class="mb-2 text-sm font-medium text-ink">Paleta</legend>
+                    <div class="grid gap-3 sm:grid-cols-3">
+                        @foreach (\App\Enums\ColorPalette::cases() as $paletteOption)
+                            <x-theme.palette-option :palette="$paletteOption" name="palette" wire:model.live="palette" wire:key="palette-{{ $paletteOption->value }}" />
+                        @endforeach
+                    </div>
+                </fieldset>
+
+                <div>
+                    <p class="mb-2 text-sm font-medium text-ink">Modo</p>
+                    <x-theme-switch block />
+                </div>
                 <p class="text-sm text-ink-muted">
                     Contrae la barra lateral con <x-kbd text="Ctrl" /> + <x-kbd :text="'\\'" /> para usar todo el ancho.
                 </p>

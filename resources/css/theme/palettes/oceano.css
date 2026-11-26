@@ -1,0 +1,98 @@
+/*
+ * Océano — slate blue accent with cool neutrals.
+ *
+ * Its accent is blue, so the second chart series (blue by default) is swapped
+ * for oak to keep the series distinguishable.
+ * Contract and how to add a palette: resources/css/theme/palettes/index.css.
+ */
+@layer base {
+    [data-palette='oceano'] {
+        /* Scales (same in light and dark) */
+        --wb-primary-50: #f3f7fa;
+        --wb-primary-100: #e4edf3;
+        --wb-primary-200: #c9dae7;
+        --wb-primary-300: #a3c0d6;
+        --wb-primary-400: #6f9bbb;
+        --wb-primary-500: #3a6b8c;
+        --wb-primary-600: #315b78;
+        --wb-primary-700: #2a4c64;
+        --wb-primary-800: #233e52;
+        --wb-primary-900: #1d3242;
+        --wb-primary-950: #121f29;
+
+        --wb-secondary-50: #f8fafb;
+        --wb-secondary-100: #f1f4f6;
+        --wb-secondary-200: #e2e7eb;
+        --wb-secondary-300: #cdd4da;
+        --wb-secondary-400: #9aa4ad;
+        --wb-secondary-500: #6e7983;
+        --wb-secondary-600: #565f68;
+        --wb-secondary-700: #444b53;
+        --wb-secondary-800: #30353b;
+        --wb-secondary-900: #24282d;
+        --wb-secondary-950: #16191c;
+
+        --wb-gray-50: #fafbfc;
+        --wb-gray-100: #f4f6f8;
+        --wb-gray-200: #e9edf0;
+        --wb-gray-300: #dce1e6;
+        --wb-gray-400: #aeb5bc;
+        --wb-gray-500: #8a929a;
+        --wb-gray-600: #6b737b;
+        --wb-gray-700: #525960;
+        --wb-gray-800: #2b3138;
+        --wb-gray-900: #22272c;
+        --wb-gray-950: #15181b;
+
+        --wb-dark-50: #f3f5f7;
+        --wb-dark-100: #e3e7eb;
+        --wb-dark-200: #cdd3d9;
+        --wb-dark-300: #a2abb3;
+        --wb-dark-400: #848d96;
+        --wb-dark-500: #67707a;
+        --wb-dark-600: #3a4149;
+        --wb-dark-700: #2e343b;
+        --wb-dark-800: #20262c;
+        --wb-dark-900: #14181c;
+        --wb-dark-950: #0e1114;
+
+        /* Surfaces — light */
+        --wb-canvas: #ffffff;
+        --wb-sidebar: #f5f7f9;
+        --wb-surface: #ffffff;
+        --wb-surface-muted: #fafbfc;
+        --wb-elevated: #ffffff;
+        --wb-edge: #cdd4da;
+        --wb-ink: #2b3138;
+        --wb-ink-muted: #6b737b;
+        --wb-ink-subtle: #9aa4ad;
+        --wb-line: #e9edf0;
+        --wb-line-strong: #dce1e6;
+        --wb-chart-1: #3a6b8c;
+        --wb-glow-a: rgb(111 155 187 / 0.32);
+        --wb-glow-b: rgb(174 181 188 / 0.2);
+
+        /* Overrides of shared tokens (both modes) */
+        --wb-chart-2: #8f6b4a;
+    }
+
+    :is(.dark[data-palette='oceano'], .dark [data-palette='oceano']) {
+        /* Surfaces — dark */
+        --wb-canvas: #14181c;
+        --wb-sidebar: #1a1f24;
+        --wb-surface: #20262c;
+        --wb-surface-muted: #191d22;
+        --wb-elevated: #262c33;
+        --wb-edge: #444b53;
+        --wb-ink: #e3e7eb;
+        --wb-ink-muted: #97a0a8;
+        --wb-ink-subtle: #67707a;
+        --wb-line: #2a3036;
+        --wb-line-strong: #3a4149;
+        --wb-chart-1: #6f9bbb;
+        --wb-glow-a: rgb(42 76 100 / 0.55);
+        --wb-glow-b: rgb(111 155 187 / 0.1);
+
+        --wb-chart-2: #b9976f;
+    }
+}

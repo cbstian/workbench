@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ColorPalette;
 use App\Enums\Permission;
 use App\Enums\WorkspaceRole;
 use Closure;
@@ -31,12 +32,13 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $name
  * @property string $email
  * @property Carbon|null $email_verified_at
+ * @property ColorPalette|null $palette
  * @property Carbon|null $deactivated_at
  * @property int|null $deactivated_by_id
  * @property Carbon|null $deleted_at
  * @property int|null $deleted_by_id
  */
-#[Fillable(['name', 'email', 'password', 'deactivated_at'])]
+#[Fillable(['name', 'email', 'password', 'palette', 'deactivated_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -54,6 +56,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'deactivated_at' => 'datetime',
             'password' => 'hashed',
+            'palette' => ColorPalette::class,
         ];
     }
 

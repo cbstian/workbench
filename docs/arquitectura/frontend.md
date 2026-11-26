@@ -20,8 +20,9 @@ resources/
 ├── css/
 │   ├── app.css                  # Punto de entrada: importa todo en orden
 │   ├── theme/
-│   │   ├── palette.css          # Escalas de color y familias tipográficas (@theme)
-│   │   └── tokens.css           # Tokens semánticos claro/oscuro (canvas, ink, line…)
+│   │   ├── scales.css           # Escalas de color (apuntan a la paleta) y familias tipográficas (@theme)
+│   │   ├── tokens.css           # Tokens semánticos compartidos y derivados (canvas, ink, line…)
+│   │   └── palettes/            # Una paleta por archivo (roble, oceano, bosque) + index.css con el contrato
 │   ├── base/
 │   │   └── base.css             # Estilos globales de elementos (html, body, foco, selección)
 │   └── components/
@@ -31,7 +32,8 @@ resources/
 │   ├── app.js                   # Punto de entrada JS: registra los módulos en Alpine + imágenes para Vite
 │   └── modules/
 │       ├── sidebar.js           # Store Alpine `sidebar` (colapsar, móvil, Ctrl/Cmd + \)
-│       └── chart.js             # Componente Alpine `wbChart` (ApexCharts con carga diferida y tema)
+│       ├── chart.js             # Componente Alpine `wbChart` (ApexCharts con carga diferida y tema)
+│       └── palette.js           # Aplica la paleta elegida en Ajustes sin recargar (`palette-changed`)
 ├── images/
 │   └── brand/                   # Logos (ver docs/marca/README.md)
 │       └── originales/          # JPG entregados, intactos

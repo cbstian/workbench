@@ -7,6 +7,7 @@ it('shows only the brand name on the landing page', function () {
         ->assertOk()
         ->assertSeeText(config('app.name'))
         ->assertSee('landing-backdrop', escape: false)
+        ->assertSee('data-palette="roble"', escape: false)
         ->assertSee(route('login'), escape: false);
 });
 

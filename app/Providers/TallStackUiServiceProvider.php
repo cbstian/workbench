@@ -8,7 +8,7 @@ use TallStackUi\Facades\TallStackUi;
 /**
  * Soft customizations of TallStackUI components.
  *
- * Colors come from the design tokens (resources/css/theme/*.css); this
+ * Colors come from the design tokens and palettes (resources/css/theme/); this
  * provider only adjusts class blocks that tokens cannot reach, such as the
  * playful default icon colors of the theme switch. Keep every override here
  * so the look of the UI kit is defined in one place (docs/arquitectura/diseno.md).

@@ -4,7 +4,8 @@
  * - ApexCharts is loaded with a dynamic import, so pages without charts never
  *   download it (it lands in its own chunk).
  * - Colors, fonts, grid and tooltip come from the design tokens
- *   (resources/css/theme/tokens.css) and follow the light/dark theme live.
+ *   (resources/css/theme/) and follow the light/dark mode and the color
+ *   palette live.
  * - Options passed from Blade are deep-merged over those defaults, so a chart
  *   only declares what is specific to it (type, series, labels, axes…).
  *
@@ -42,7 +43,7 @@ function token(name) {
 }
 
 /**
- * Defaults derived from the current theme. Called again when the theme changes.
+ * Defaults derived from the current theme. Called again when the mode or palette changes.
  */
 function themeOptions() {
     const isDark = document.documentElement.classList.contains('dark');
@@ -101,7 +102,7 @@ export function registerChart(Alpine) {
                 this.chart?.updateOptions(deepMerge(themeOptions(), options), false, false);
             });
 
-            this.observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            this.observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-palette'] });
         },
 
         destroy() {

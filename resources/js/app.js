@@ -9,8 +9,10 @@ import { registerSidebar } from './modules/sidebar';
 import { registerChart } from './modules/chart';
 import { registerHtmlState } from './modules/html-state';
 import { registerEmojiPicker } from './modules/emoji-picker';
+import { registerPalette } from './modules/palette';
 
 registerHtmlState();
+registerPalette();
 
 document.addEventListener('alpine:init', () => {
     registerSidebar(window.Alpine);

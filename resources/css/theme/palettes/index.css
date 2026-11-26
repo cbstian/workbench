@@ -1,0 +1,34 @@
+/*
+ * Color palettes the user can choose (Ajustes → Apariencia).
+ *
+ * Two independent axes on <html>:
+ *   - mode:    class="dark" (per browser, TallStackUI theme switch)
+ *   - palette: data-palette="roble|oceano|…" (per user, rendered by the server
+ *              from App\Enums\ColorPalette; guests get the default one)
+ *
+ * Contract — every palette file defines, on these two selectors:
+ *
+ *   [data-palette='x']
+ *       --wb-{primary,secondary,gray,dark}-{50…950}   scales, mode independent
+ *       --wb-canvas, --wb-sidebar, --wb-surface, --wb-surface-muted,
+ *       --wb-elevated, --wb-edge, --wb-ink, --wb-ink-muted, --wb-ink-subtle,
+ *       --wb-line, --wb-line-strong, --wb-chart-1, --wb-glow-a, --wb-glow-b
+ *
+ *   :is(.dark[data-palette='x'], .dark [data-palette='x'])
+ *       the same surface variables, dark values
+ *
+ * Everything else (accent, ring, today, hover, active, scrollbar, grid dot)
+ * is derived from those in tokens.css. Shared tokens (priorities, overdue,
+ * chart-2…6, overlay, brand) may be overridden by a palette, always in both
+ * selectors. The `:is(...)` form also matches a nested element, so a preview
+ * card can render any palette inside the page.
+ *
+ * Adding a palette:
+ *   1. Copy roble.css to <name>.css and change the values.
+ *   2. Import it below.
+ *   3. Add a case to App\Enums\ColorPalette with its label and description.
+ *   4. npm run build
+ */
+@import './roble.css';
+@import './oceano.css';
+@import './bosque.css';

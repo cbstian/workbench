@@ -2,14 +2,16 @@
  * Workbench — CSS entry point.
  *
  * Order matters: TallStackUI ships its own @theme, and our design tokens are
- * imported afterwards so they override its palette. See docs/arquitectura/diseno.md.
+ * imported afterwards so they override its palette. Palettes come after the
+ * shared tokens so they can override them. See docs/arquitectura/diseno.md.
  */
 @import 'tailwindcss';
 @import '../../vendor/tallstackui/tallstackui/css/v4.css';
 
 /* Design system */
-@import './theme/palette.css';
+@import './theme/scales.css';
 @import './theme/tokens.css';
+@import './theme/palettes/index.css';
 @import './base/base.css';
 
 /* Page-specific styles that cannot be expressed with utilities */
