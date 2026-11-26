@@ -8,7 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * Starts and stops impersonation (super admin seeing the app as a user).
+ * Starts and stops impersonation (super admin seeing the app as a user or a client).
  */
 class ImpersonationController extends Controller
 {
@@ -27,10 +27,11 @@ class ImpersonationController extends Controller
     {
         abort_unless($this->impersonation->isActive(), 403);
 
+        $returnRoute = $this->impersonation->returnRoute();
         $impersonator = $this->impersonation->stop();
 
         return $impersonator !== null
-            ? redirect()->route('users.index')
+            ? redirect()->route($returnRoute)
             : redirect()->route('login');
     }
 }

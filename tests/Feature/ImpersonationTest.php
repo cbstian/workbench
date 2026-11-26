@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\WorkspaceRole;
+use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Users\Index as UsersIndex;
 use App\Models\Client;
@@ -71,6 +72,37 @@ it('starts from the users page', function () {
 
     expect(auth()->id())->toBe($member->id)
         ->and(session(Impersonation::IMPERSONATOR_KEY))->toBe($owner->id);
+});
+
+it('starts from the clients page and comes back to it', function () {
+    ['owner' => $owner, 'clientUser' => $clientUser] = impersonationSetup();
+    $client = $clientUser->clients()->sole();
+
+    Livewire::actingAs($owner)->test(ClientsIndex::class)
+        ->assertSeeText('Ver como este cliente')
+        ->call('impersonate', $client->uuid, $clientUser->uuid)
+        ->assertRedirect(route('dashboard'));
+
+    expect(auth()->id())->toBe($clientUser->id);
+
+    $this->delete(route('impersonation.stop'))->assertRedirect(route('clients.index'));
+    $this->assertAuthenticatedAs($owner);
+});
+
+it('only impersonates users linked to that client', function () {
+    ['owner' => $owner, 'clientUser' => $clientUser, 'member' => $member, 'workspace' => $workspace] = impersonationSetup();
+    $client = $clientUser->clients()->sole();
+    $otherClient = Client::factory()->for($workspace)->create();
+
+    Livewire::actingAs($owner)->test(ClientsIndex::class)
+        ->call('impersonate', $otherClient->uuid, $clientUser->uuid)
+        ->assertNotFound();
+
+    Livewire::actingAs($owner)->test(ClientsIndex::class)
+        ->call('impersonate', $client->uuid, $member->uuid)
+        ->assertNotFound();
+
+    $this->assertAuthenticatedAs($owner);
 });
 
 it('goes back to the super admin and their workspace', function () {

@@ -37,6 +37,14 @@
                     <x-dropdown icon="ellipsis-horizontal" static>
                         <x-dropdown.items icon="folder" text="Ver proyectos" :href="route('projects.index', ['client' => $client->uuid])" navigate />
                         <x-dropdown.items icon="pencil-square" text="Editar" wire:click="edit('{{ $client->uuid }}')" />
+                        @foreach ($client->users as $clientUser)
+                            @can('impersonate', $clientUser)
+                                <x-dropdown.items icon="eye"
+                                                  :text="$client->users->count() > 1 ? 'Ver como '.$clientUser->name : 'Ver como este cliente'"
+                                                  :separator="$loop->first"
+                                                  wire:click="impersonate('{{ $client->uuid }}', '{{ $clientUser->uuid }}')" />
+                            @endcan
+                        @endforeach
                         <x-dropdown.items icon="trash" text="Enviar a la papelera" separator wire:click="confirmDelete('{{ $client->uuid }}')" />
                     </x-dropdown>
                 </li>

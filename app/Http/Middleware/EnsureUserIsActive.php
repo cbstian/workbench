@@ -23,9 +23,10 @@ class EnsureUserIsActive
         $user = $request->user();
 
         if ($user instanceof User && ! $user->isActive() && app(Impersonation::class)->isActive()) {
+            $returnRoute = app(Impersonation::class)->returnRoute();
             app(Impersonation::class)->stop();
 
-            return redirect()->route('users.index');
+            return redirect()->route($returnRoute);
         }
 
         if ($user instanceof User && ! $user->isActive()) {

@@ -5,6 +5,7 @@ namespace App\Livewire\Clients;
 use App\Livewire\Concerns\WithCurrentWorkspace;
 use App\Livewire\Forms\ClientForm;
 use App\Models\Client;
+use App\Support\Impersonation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -45,6 +46,7 @@ class Index extends Component
         return $this->workspace->clients()
             ->when($this->search !== '', fn ($query) => $query->whereLike('name', $like))
             ->withCount(['projects', 'users'])
+            ->with(['users' => fn ($query) => $query->whereNull('users.deactivated_at')->orderBy('users.name')])
             ->orderBy('name')
             ->get();
     }
@@ -113,6 +115,20 @@ class Index extends Component
 
         $this->toast()->success('Cliente enviado a la papelera', 'Puedes restaurarlo desde la papelera.')->send();
         unset($this->clients);
+    }
+
+    /**
+     * See the app as one of the client's users; the floating bar brings the
+     * super admin back to this page.
+     */
+    public function impersonate(string $clientUuid, string $userUuid): void
+    {
+        $user = $this->findClient($clientUuid)->users()->where('users.uuid', $userUuid)->firstOrFail();
+        $this->authorize('impersonate', $user);
+
+        app(Impersonation::class)->start(auth()->user(), $user, 'clients.index');
+
+        $this->redirectRoute('dashboard');
     }
 
     private function findClient(string $uuid): Client

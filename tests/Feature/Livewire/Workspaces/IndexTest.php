@@ -103,3 +103,21 @@ it('lets an invited user see only the workspaces they were invited to (RN-03)', 
         ->assertSeeText($workspace->name)
         ->assertDontSeeText('No invitado');
 });
+
+it('hides the workspace picker from a client user and refuses switching', function () {
+    [, $workspace] = superAdminWithWorkspace();
+    $other = Workspace::factory()->create(['name' => 'Otro espacio']);
+    $clientUser = User::factory()->memberOf($workspace, WorkspaceRole::Client)->create();
+    User::factory()->memberOf($other)->create();
+    $clientUser->workspaces()->attach($other, ['role' => WorkspaceRole::Member->value]);
+    session([CurrentWorkspace::SESSION_KEY => $workspace->id]);
+
+    Livewire::actingAs($clientUser)
+        ->test(WorkspaceSwitcher::class)
+        ->assertDontSeeText($workspace->name)
+        ->assertDontSee('Cambiar espacio de trabajo')
+        ->call('switchTo', $other->uuid)
+        ->assertForbidden();
+
+    expect(session(CurrentWorkspace::SESSION_KEY))->toBe($workspace->id);
+});

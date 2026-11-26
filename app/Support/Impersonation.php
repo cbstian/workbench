@@ -19,6 +19,8 @@ class Impersonation
 
     public const string IMPERSONATOR_WORKSPACE_KEY = 'impersonator_workspace_id';
 
+    public const string RETURN_ROUTE_KEY = 'impersonator_return_route';
+
     public function __construct(private CurrentWorkspace $currentWorkspace) {}
 
     public function isActive(): bool
@@ -36,15 +38,26 @@ class Impersonation
 
     /**
      * Sign in as the target. The caller authorizes it first (UserPolicy::impersonate).
+     *
+     * `$returnRoute` names the page the super admin goes back to when it ends.
      */
-    public function start(User $impersonator, User $target): void
+    public function start(User $impersonator, User $target, string $returnRoute = 'users.index'): void
     {
         Session::put(self::IMPERSONATOR_KEY, $impersonator->id);
         Session::put(self::IMPERSONATOR_WORKSPACE_KEY, $this->currentWorkspace->get()?->id);
+        Session::put(self::RETURN_ROUTE_KEY, $returnRoute);
 
         $this->currentWorkspace->forget();
         Auth::guard('web')->login($target);
         Session::regenerate();
+    }
+
+    /**
+     * Route of the page the super admin started from (users or clients).
+     */
+    public function returnRoute(): string
+    {
+        return Session::get(self::RETURN_ROUTE_KEY, 'users.index');
     }
 
     /**
@@ -55,7 +68,7 @@ class Impersonation
         $impersonator = $this->impersonator();
         $workspaceId = Session::get(self::IMPERSONATOR_WORKSPACE_KEY);
 
-        Session::forget([self::IMPERSONATOR_KEY, self::IMPERSONATOR_WORKSPACE_KEY]);
+        Session::forget([self::IMPERSONATOR_KEY, self::IMPERSONATOR_WORKSPACE_KEY, self::RETURN_ROUTE_KEY]);
         $this->currentWorkspace->forget();
 
         if ($impersonator === null) {
