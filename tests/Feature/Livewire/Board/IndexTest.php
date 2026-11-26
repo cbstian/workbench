@@ -313,6 +313,22 @@ it('puts the week and the weekend in the address and snaps to Monday', function 
         ->call('currentWeek');
 });
 
+it('opens the distraction-free view from the address and leaves it', function () {
+    [$owner, $workspace] = superAdminWithWorkspace();
+    Project::factory()->for($workspace)->create(['name' => 'En foco']);
+
+    Livewire::actingAs($owner)
+        ->withQueryParams(['enfoque' => 1])
+        ->test(Index::class)
+        ->assertSet('focus', true)
+        ->assertSee('aria-label="Pizarra sin distracciones"', false)
+        ->assertSeeText('En foco')
+        ->assertDontSeeText('Buscar proyecto…')
+        ->set('focus', false)
+        ->assertDontSee('aria-label="Pizarra sin distracciones"', false)
+        ->assertSeeText('Sin distracciones');
+});
+
 it('uses America/Santiago for today when UTC is already the next day', function () {
     $previous = date_default_timezone_get();
     config(['app.timezone' => 'America/Santiago']);

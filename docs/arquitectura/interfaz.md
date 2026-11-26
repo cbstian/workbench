@@ -73,6 +73,8 @@ Fuente única del menú. **Un módulo nuevo agrega su entrada aquí; no se edita
 ### Pizarra (E11)
 
 - `App\Livewire\Board\Index` (`/pizarra`, junto a Inicio, habilidad `view-projects`) es la pizarra del Workspace: filas de Proyectos y columnas de la semana (lunes a viernes; «Fin de semana» suma sábado y domingo). Pensada para un monitor vertical: columna de Proyecto fija, días en un contenedor con scroll, columna de hoy con `bg-today`.
+- Columna de Proyecto (`w-56`): punto de prioridad y nombre (hasta dos líneas) arriba; término y avisos debajo; al pie, «N tareas» (despliega las subfilas) y Pausar/Ocultar. El asa para reordenar vive en el margen izquierdo y solo aparece al pasar el mouse, sin quitar ancho al nombre.
+- «Sin distracciones» (`enfoque` en la URL) cubre toda la ventana con la tabla: oculta barra lateral, encabezado, filtros y leyenda, deja la navegación de semanas y ofrece «Pantalla completa» del navegador. Esc o «Salir» vuelven a la vista normal; los filtros activos se mantienen.
 - La semana (`semana`) y los filtros (`fin_de_semana`, `sin_pausados`, `vencidos`, `sin_trabajo`, `q`) van en la URL. La página se refresca con `wire:poll.visible` cada 45 segundos.
 - Notas, prioridad, pausa y orden de filas son compartidos (ver `docs/permisos.md`). Ocultar un Proyecto es personal. Las subfilas son las Tareas raíz abiertas y se pliegan en el navegador (`$persist`).
 - Una celda vacía (o el «+») abre una nota; Enter la guarda. «Ya hecho» la crea cerrada. Clic en una nota: marcar hecha, editar, vincular una Tarea del Proyecto o eliminar.

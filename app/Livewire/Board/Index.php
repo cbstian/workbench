@@ -61,6 +61,14 @@ class Index extends Component
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
+    /**
+     * Distraction-free view: the board covers the whole window, without the
+     * sidebar, header, filters and legend. In the URL so a wall monitor can
+     * bookmark it.
+     */
+    #[Url(as: 'enfoque', except: false)]
+    public bool $focus = false;
+
     public bool $showHidden = false;
 
     /**

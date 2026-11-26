@@ -7,12 +7,14 @@
         </defs>
     </svg>
 
+    @unless ($focus)
     <x-ui.page-header title="Pizarra" icon="📋"
                       :description="'Semana del '.$this->weekLabel.'. Notas compartidas de lo que hay que hacer cada día.'">
         <x-slot:actions>
             <x-button icon="chevron-left" text="Anterior" sm flat wire:click="previousWeek" />
             <x-button text="Hoy" sm flat wire:click="currentWeek" />
             <x-button icon="chevron-right" text="Siguiente" sm flat wire:click="nextWeek" />
+            <x-button icon="arrows-pointing-out" text="Sin distracciones" sm flat wire:click="$set('focus', true)" />
         </x-slot:actions>
     </x-ui.page-header>
 
@@ -47,16 +49,49 @@
         <li class="flex items-center gap-1.5"><span class="inline-block h-3 w-4 text-ink-subtle"><svg class="h-full w-full" aria-hidden="true"><rect width="100%" height="100%" fill="url(#wb-board-wave)" /></svg></span> En pausa</li>
         <li class="flex items-center gap-1.5"><span class="size-1 rounded-full bg-ink-subtle"></span> Sin trabajo</li>
     </ul>
+    @endunless
+
+    <div @if ($focus)
+             x-data="{
+                 init() { document.documentElement.style.overflow = 'hidden' },
+                 destroy() { document.documentElement.style.overflow = '' },
+             }"
+             x-on:keydown.escape.window="if (! $event.target.closest('input, textarea, select')) { $wire.set('focus', false) }"
+             role="dialog" aria-modal="true" aria-label="Pizarra sin distracciones"
+         @endif
+         @class(['fixed inset-0 z-50 flex flex-col bg-canvas' => $focus])>
+    @if ($focus)
+        <div class="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 px-3 py-1.5">
+            <p class="min-w-0 flex-1 truncate text-sm text-ink">
+                <span class="font-medium">📋 Pizarra</span>
+                <span class="text-ink-muted">· Semana del {{ $this->weekLabel }}</span>
+            </p>
+            <x-button icon="chevron-left" text="Anterior" sm flat wire:click="previousWeek" />
+            <x-button text="Hoy" sm flat wire:click="currentWeek" />
+            <x-button icon="chevron-right" text="Siguiente" sm flat wire:click="nextWeek" />
+            <div x-data="{ full: !! document.fullscreenElement }" x-on:fullscreenchange.document="full = !! document.fullscreenElement" x-show="document.fullscreenEnabled">
+                <x-button sm flat x-on:click="full ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
+                    <span x-text="full ? 'Salir de pantalla completa' : 'Pantalla completa'">Pantalla completa</span>
+                </x-button>
+            </div>
+            <x-button icon="arrows-pointing-in" text="Salir" sm flat title="Salir de la vista sin distracciones (Esc)"
+                      x-on:click="document.fullscreenElement && document.exitFullscreen()" wire:click="$set('focus', false)" />
+        </div>
+    @endif
 
     @if ($this->rows->isEmpty())
         <x-ui.empty-state icon="view-columns" title="Nada que mostrar"
                           description="No hay proyectos que coincidan con estos filtros. Los que ocultaste siguen en «Ocultos»." />
     @else
-        <div class="max-h-[calc(100dvh-16rem)] overflow-auto rounded-lg border border-line bg-canvas scrollbar-subtle">
+        <div @class([
+                 'overflow-auto overscroll-contain bg-canvas scrollbar-subtle',
+                 'max-h-[calc(100dvh-16rem)] rounded-lg border border-line' => ! $focus,
+                 'min-h-0 flex-1 border-t border-line' => $focus,
+             ])>
             <table @if ($this->canReorder) wire:sort="reorderProjects" @endif class="w-full table-fixed border-separate border-spacing-0 text-[11px]">
                 <thead>
                     <tr>
-                        <th class="sticky top-0 left-0 z-30 w-44 border-b border-r border-line bg-canvas px-2 py-1.5 text-left font-medium text-ink-muted">
+                        <th class="sticky top-0 left-0 z-30 w-56 border-b border-r border-line bg-canvas px-2 py-1.5 text-left font-medium text-ink-muted">
                             Proyecto
                         </th>
                         @foreach ($this->days as $day)
@@ -83,83 +118,98 @@
                            data-project="{{ $project->name }}" data-project-overdue="{{ $project->isOverdue() ? '1' : '0' }}" data-open-overdue="{{ $row['openTasks'] }}" data-paused="{{ $project->isPaused() ? '1' : '0' }}"
                            class="group">
                         <tr>
-                            <th class="sticky left-0 z-10 w-44 border-b border-r border-line bg-canvas px-1.5 py-1 text-left align-top font-normal">
+                            <th class="sticky left-0 z-10 w-56 border-b border-r border-line bg-canvas py-1.5 pr-2 pl-3.5 text-left align-top font-normal">
                                 @if ($project->isPaused())
                                     <svg class="pointer-events-none absolute inset-0 h-full w-full text-ink-subtle" aria-hidden="true">
                                         <rect width="100%" height="100%" fill="url(#wb-board-wave)" />
                                     </svg>
                                     <span class="sr-only">En pausa.</span>
                                 @endif
-                                <div class="relative flex items-start gap-1">
-                                    @if ($this->canReorder)
-                                        <button type="button" wire:sort:handle class="mt-0.5 cursor-grab text-ink-subtle hover:text-ink" aria-label="Reordenar {{ $project->name }}">
-                                            <x-icon icon="bars-3" class="size-3.5" />
-                                        </button>
-                                    @endif
-                                    <button type="button" @click="open = !open" class="mt-0.5 text-ink-subtle hover:text-ink" :aria-expanded="open">
-                                        <span class="inline-flex transition-transform" :class="open && 'rotate-90'">
-                                            <x-icon icon="chevron-right" class="size-3.5" />
-                                        </span>
-                                        <span class="sr-only">Tareas de {{ $project->name }}</span>
+                                @if ($this->canReorder)
+                                    {{-- Drag handle in the left gutter: shown on hover, takes no room from the name. --}}
+                                    <button type="button" wire:sort:handle
+                                            class="absolute inset-y-0 left-0 z-[1] flex w-3.5 cursor-grab justify-center pt-2 text-ink-subtle opacity-0 transition-opacity group-hover:opacity-100 hover:text-ink focus-visible:opacity-100 active:cursor-grabbing"
+                                            title="Arrastrar para reordenar" aria-label="Reordenar {{ $project->name }}">
+                                        <x-icon icon="ellipsis-vertical" class="size-3.5" />
                                     </button>
-                                    @if ($this->canReorder)
-                                        <div class="relative mt-0.5" x-data="{ menu: false }" @click.outside="menu = false">
-                                            <button type="button" @click="menu = !menu" class="block rounded-full p-0.5 hover:bg-hover" aria-label="Prioridad: {{ $project->priority->label() }}">
-                                                <span class="block size-2.5 rounded-full {{ $project->priority->dotClass() }}"></span>
-                                            </button>
-                                            <div x-show="menu" x-cloak class="absolute left-0 z-40 mt-1 w-32 rounded-md border border-line bg-elevated p-1 shadow-sm">
-                                                @foreach (\App\Enums\ProjectPriorityLevel::cases() as $level)
-                                                    <button type="button" wire:click="setPriority('{{ $project->uuid }}', '{{ $level->value }}')" @click="menu = false"
-                                                            class="flex w-full items-center gap-2 rounded px-1.5 py-1 text-left text-xs text-ink hover:bg-hover">
-                                                        <span class="size-2.5 rounded-full {{ $level->dotClass() }}"></span>
-                                                        {{ $level->label() }}
-                                                    </button>
-                                                @endforeach
+                                @endif
+                                <div class="relative">
+                                    <div class="flex items-start gap-1.5">
+                                        @if ($this->canReorder)
+                                            <div class="relative mt-1 shrink-0" x-data="{ menu: false }" @click.outside="menu = false">
+                                                <button type="button" @click="menu = !menu" class="-m-0.5 block rounded-full p-0.5 hover:bg-hover" aria-label="Prioridad: {{ $project->priority->label() }}">
+                                                    <span class="block size-2.5 rounded-full {{ $project->priority->dotClass() }}"></span>
+                                                </button>
+                                                <div x-show="menu" x-cloak class="absolute left-0 z-40 mt-1 w-32 rounded-md border border-line bg-elevated p-1 shadow-sm">
+                                                    @foreach (\App\Enums\ProjectPriorityLevel::cases() as $level)
+                                                        <button type="button" wire:click="setPriority('{{ $project->uuid }}', '{{ $level->value }}')" @click="menu = false"
+                                                                class="flex w-full items-center gap-2 rounded px-1.5 py-1 text-left text-xs text-ink hover:bg-hover">
+                                                            <span class="size-2.5 rounded-full {{ $level->dotClass() }}"></span>
+                                                            {{ $level->label() }}
+                                                        </button>
+                                                    @endforeach
+                                                </div>
                                             </div>
-                                        </div>
-                                    @else
-                                        <span class="mt-1 block size-2.5 shrink-0 rounded-full {{ $project->priority->dotClass() }}" title="Prioridad: {{ $project->priority->label() }}"></span>
-                                    @endif
-                                    <div class="min-w-0 flex-1">
-                                        <a href="{{ route('projects.show', $project) }}" wire:navigate
+                                        @else
+                                            <span class="mt-1 block size-2.5 shrink-0 rounded-full {{ $project->priority->dotClass() }}" title="Prioridad: {{ $project->priority->label() }}"></span>
+                                        @endif
+                                        <a href="{{ route('projects.show', $project) }}" wire:navigate title="{{ $project->name }}"
                                            @class([
-                                               'block truncate text-xs font-medium text-ink hover:underline',
+                                               'line-clamp-2 min-w-0 flex-1 text-xs leading-snug font-medium text-ink hover:underline',
                                                'line-through decoration-ink-subtle' => $project->isPaused(),
                                            ])>{{ $project->icon }} {{ $project->name }}</a>
-                                        <div class="mt-0.5 flex flex-wrap items-center gap-1">
-                                            @if ($project->isOverdue())
-                                                <span class="rounded bg-surface px-1 text-[10px] font-medium text-overdue">Vencido</span>
-                                            @endif
-                                            @if ($row['overdueEntries'] > 0)
-                                                <span class="text-[10px] text-overdue" title="Notas planificadas de días anteriores">{{ $row['overdueEntries'] }} {{ $row['overdueEntries'] === 1 ? 'nota' : 'notas' }}</span>
-                                            @endif
-                                            @if ($row['openTasks'] > 0)
-                                                <span class="text-[10px] text-ink-muted" title="Tareas abiertas con término vencido">{{ $row['openTasks'] }} {{ $row['openTasks'] === 1 ? 'tarea' : 'tareas' }}</span>
-                                            @endif
-                                        </div>
+                                    </div>
+
+                                    <div class="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px]">
                                         @if ($this->canReorder)
-                                            <div class="mt-0.5" x-data="{ editing: false }">
+                                            <span x-data="{ editing: false }" class="inline-flex">
                                                 <button type="button" x-show="!editing" x-on:click="editing = true; $nextTick(() => $refs.due.focus())"
-                                                        class="text-[10px] text-ink-muted hover:text-ink">
+                                                        class="inline-flex items-center gap-0.5 text-ink-muted hover:text-ink" title="Fecha de término">
+                                                    <x-icon icon="calendar" class="size-3" />
                                                     {{ $project->due_on ? $project->due_on->translatedFormat('j M Y') : 'Término' }}
                                                 </button>
                                                 <input x-show="editing" x-cloak x-ref="due" type="date" value="{{ $project->due_on?->toDateString() }}"
                                                        x-on:change="$wire.setDueDate('{{ $project->uuid }}', $event.target.value); editing = false"
                                                        x-on:blur="editing = false"
-                                                       class="w-full border-0 bg-transparent p-0 text-[10px] text-ink-muted"
+                                                       class="w-28 border-0 bg-transparent p-0 text-[10px] text-ink-muted"
                                                        aria-label="Fecha de término de {{ $project->name }}" />
-                                            </div>
+                                            </span>
                                         @elseif ($project->due_on)
-                                            <time class="text-[10px] text-ink-muted" datetime="{{ $project->due_on->toDateString() }}">{{ $project->due_on->translatedFormat('j M') }}</time>
+                                            <time class="inline-flex items-center gap-0.5 text-ink-muted" datetime="{{ $project->due_on->toDateString() }}">
+                                                <x-icon icon="calendar" class="size-3" />
+                                                {{ $project->due_on->translatedFormat('j M') }}
+                                            </time>
                                         @endif
-                                        <div class="mt-0.5 flex gap-2 text-[10px] text-ink-subtle">
+                                        @if ($project->isOverdue())
+                                            <span class="rounded bg-surface px-1 font-medium text-overdue">Vencido</span>
+                                        @endif
+                                        @if ($row['overdueEntries'] > 0)
+                                            <span class="text-overdue" title="Notas planificadas de días anteriores">{{ $row['overdueEntries'] }} {{ $row['overdueEntries'] === 1 ? 'nota' : 'notas' }}</span>
+                                        @endif
+                                    </div>
+
+                                    <div class="mt-0.5 flex items-center gap-2 text-[10px] text-ink-subtle">
+                                        @if ($row['tasks'] !== [])
+                                            <button type="button" @click="open = !open" :aria-expanded="open"
+                                                    class="-ml-0.5 inline-flex items-center gap-0.5 rounded text-ink-muted hover:text-ink">
+                                                <span class="inline-flex transition-transform" :class="open && 'rotate-90'">
+                                                    <x-icon icon="chevron-right" class="size-3" />
+                                                </span>
+                                                {{ count($row['tasks']) }} {{ count($row['tasks']) === 1 ? 'tarea' : 'tareas' }}
+                                                <span class="sr-only">de {{ $project->name }}</span>
+                                            </button>
+                                        @endif
+                                        @if ($row['openTasks'] > 0)
+                                            <span class="text-overdue" title="Tareas abiertas con término vencido">{{ $row['openTasks'] }} {{ $row['openTasks'] === 1 ? 'vencida' : 'vencidas' }}</span>
+                                        @endif
+                                        <span class="ml-auto flex gap-2">
                                             @if ($this->canReorder)
                                                 <button type="button" wire:click="togglePause('{{ $project->uuid }}')" class="hover:text-ink">
                                                     {{ $project->isPaused() ? 'Reanudar' : 'Pausar' }}
                                                 </button>
                                             @endif
                                             <button type="button" wire:click="hideProject('{{ $project->uuid }}')" class="hover:text-ink">Ocultar</button>
-                                        </div>
+                                        </span>
                                     </div>
                                 </div>
                             </th>
@@ -178,8 +228,8 @@
                         </tr>
                         @foreach ($row['tasks'] as $taskRow)
                             <tr wire:key="board-task-{{ $taskRow['task']->id }}" x-show="open" x-cloak class="bg-surface-muted">
-                                <th class="sticky left-0 z-10 border-b border-r border-line bg-surface-muted py-1 pr-1.5 pl-8 text-left align-top font-normal">
-                                    <span @class(['block truncate text-[11px] text-ink', 'text-overdue' => $taskRow['overdue']])>
+                                <th class="sticky left-0 z-10 border-b border-r border-line bg-surface-muted py-1 pr-2 pl-7 text-left align-top font-normal">
+                                    <span title="{{ $taskRow['task']->name }}" @class(['line-clamp-2 text-[11px] leading-snug text-ink', 'text-overdue' => $taskRow['overdue']])>
                                         {{ $taskRow['task']->name }}
                                     </span>
                                     @if ($taskRow['overdue'])
@@ -204,4 +254,5 @@
             </table>
         </div>
     @endif
+    </div>
 </x-ui.page>
