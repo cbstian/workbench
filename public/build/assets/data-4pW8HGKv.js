@@ -1,0 +1,1 @@
+var e=`/build/assets/data-DKp8PYJD.json`;export{e as default};
