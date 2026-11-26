@@ -6,6 +6,7 @@ use App\Enums\Permission;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\ClientPortal;
 
 /**
  * Tasks of a project (F-06, RN-21, RN-23): the super admin and the project's
@@ -76,6 +77,37 @@ class TaskPolicy
     public function comment(User $user, Task $task): bool
     {
         return $this->view($user, $task);
+    }
+
+    /**
+     * See the task in the client portal (P-06): every task of a project of
+     * their client marked visible to the client.
+     */
+    public function viewInPortal(User $user, Task $task): bool
+    {
+        return app(ClientPortal::class)->canSeeTask($user, $task);
+    }
+
+    /**
+     * Read the conversation with the client (P-04): the team that sees the
+     * task, and the client users who see it in their portal.
+     */
+    public function viewClientThread(User $user, Task $task): bool
+    {
+        return $this->view($user, $task) || $this->viewInPortal($user, $task);
+    }
+
+    /**
+     * Write in the conversation with the client: client users with
+     * portal.comment, and the team while the project is shown to the client.
+     */
+    public function commentInClientThread(User $user, Task $task): bool
+    {
+        if ($this->viewInPortal($user, $task)) {
+            return $user->hasWorkspacePermission($task->workspace_id, Permission::PortalComment);
+        }
+
+        return $this->comment($user, $task) && app(ClientPortal::class)->isExposed($task);
     }
 
     /**

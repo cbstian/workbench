@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CommentThread;
 use App\Enums\TaskActivityEvent;
 use App\Models\Concerns\Commentable;
 use App\Models\Concerns\HasComments;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * Work inside a project. A subtask is a task whose parent is a root task (RN-17).
@@ -202,16 +204,28 @@ class Task extends Model implements Commentable
     }
 
     /**
-     * Whoever can see the task: its project team and the super admin.
+     * Whoever can read the thread: its project team and the super admin, and
+     * in the client thread also the users of the project's client.
      *
      * @return Collection<int, User>
      */
-    public function mentionableUsers(): Collection
+    public function mentionableUsers(CommentThread $thread = CommentThread::Internal): Collection
     {
         return $this->filterMentionable([
             ...$this->project->members()->get(),
             $this->accountOwner($this->workspace_id),
-        ]);
+            ...($thread === CommentThread::Client ? $this->project->client?->users()->get() ?? [] : []),
+        ], $thread);
+    }
+
+    /**
+     * Description as safe HTML (Markdown with raw HTML escaped).
+     */
+    public function descriptionHtml(): string
+    {
+        return filled($this->description)
+            ? Str::markdown($this->description, ['html_input' => 'escape', 'allow_unsafe_links' => false])
+            : '';
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Support\ClientPortal;
 
 /**
  * Wiki access (F-09, RN-24): only the super admin reaches the workspace wiki;
@@ -61,6 +62,37 @@ class PagePolicy
     public function comment(User $user, Page $page): bool
     {
         return $this->view($user, $page);
+    }
+
+    /**
+     * Read the page in the client portal (P-14): marked visible with all its
+     * ancestors, in a visible project of their client or in the workspace wiki.
+     */
+    public function viewInPortal(User $user, Page $page): bool
+    {
+        return app(ClientPortal::class)->canSeePage($user, $page);
+    }
+
+    /**
+     * Read the conversation with the client: whoever reaches the page in the
+     * wiki or in the portal.
+     */
+    public function viewClientThread(User $user, Page $page): bool
+    {
+        return $this->view($user, $page) || $this->viewInPortal($user, $page);
+    }
+
+    /**
+     * Write in the conversation with the client: client users with
+     * portal.comment, and the team while the page is shown to the client.
+     */
+    public function commentInClientThread(User $user, Page $page): bool
+    {
+        if ($this->viewInPortal($user, $page)) {
+            return $user->hasWorkspacePermission($page->workspace_id, Permission::PortalComment);
+        }
+
+        return $this->comment($user, $page) && app(ClientPortal::class)->isExposed($page);
     }
 
     /**

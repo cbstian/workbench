@@ -5,6 +5,7 @@ namespace App\Livewire\Comments;
 use App\Actions\Comments\DeleteComment;
 use App\Actions\Comments\PostComment;
 use App\Actions\Comments\UpdateComment;
+use App\Enums\CommentThread;
 use App\Models\Page;
 use App\Models\PageComment;
 use App\Models\Task;
@@ -13,6 +14,7 @@ use App\Support\Mentions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -24,6 +26,9 @@ use TallStackUi\Traits\Interactions;
  * threads, `@mentions` and a follow toggle. Whoever may see the element comments
  * and replies; authors edit and delete their own comments and moderators
  * delete any.
+ *
+ * Each element has two conversations (P-04): the team's internal thread and
+ * the one with the client, which client users read and write in their portal.
  */
 class Thread extends Component
 {
@@ -33,6 +38,15 @@ class Thread extends Component
 
     #[Locked]
     public Task|Page $commentable;
+
+    #[Locked]
+    public CommentThread $thread = CommentThread::Internal;
+
+    /**
+     * Hides the section heading when a parent already titles the conversation.
+     */
+    #[Locked]
+    public bool $bare = false;
 
     public string $body = '';
 
@@ -48,7 +62,7 @@ class Thread extends Component
 
     public function mount(): void
     {
-        $this->authorize('view', $this->commentable);
+        $this->authorize($this->thread->viewAbility(), $this->commentable);
     }
 
     /**
@@ -60,7 +74,7 @@ class Thread extends Component
     #[Computed]
     public function threads(): Collection
     {
-        return $this->commentable->comments()
+        return $this->comments()
             ->withTrashed()
             ->whereNull('parent_id')
             ->where(fn (Builder $query) => $query->whereNull('deleted_at')->orWhereHas('replies'))
@@ -90,7 +104,7 @@ class Thread extends Component
     #[Computed]
     public function mentionables(): array
     {
-        return $this->commentable->mentionableUsers()
+        return $this->commentable->mentionableUsers($this->thread)
             ->reject(fn ($user): bool => $user->id === auth()->id())
             ->map(fn ($user): array => ['id' => $user->uuid, 'name' => $user->name])
             ->values()
@@ -100,7 +114,16 @@ class Thread extends Component
     #[Computed]
     public function canComment(): bool
     {
-        return auth()->user()->can('comment', $this->commentable);
+        return auth()->user()->can($this->thread->commentAbility(), $this->commentable);
+    }
+
+    /**
+     * The reader is a client user, who reaches the element only through the portal.
+     */
+    #[Computed]
+    public function readsFromPortal(): bool
+    {
+        return auth()->user()->cannot('view', $this->commentable);
     }
 
     #[Computed]
@@ -122,11 +145,11 @@ class Thread extends Component
 
     public function add(PostComment $postComment): void
     {
-        $this->authorize('comment', $this->commentable);
+        $this->authorize($this->thread->commentAbility(), $this->commentable);
 
         $validated = $this->validate(['body' => ['required', 'string', 'max:'.self::MAX_LENGTH]], attributes: ['body' => 'comentario']);
 
-        $postComment->handle($this->commentable, auth()->user(), $validated['body']);
+        $postComment->handle($this->commentable, auth()->user(), $validated['body'], thread: $this->thread);
 
         $this->reset('body');
         $this->refreshThread();
@@ -134,9 +157,9 @@ class Thread extends Component
 
     public function reply(int $id): void
     {
-        $this->authorize('comment', $this->commentable);
+        $this->authorize($this->thread->commentAbility(), $this->commentable);
 
-        $comment = $this->commentable->comments()->withTrashed()->findOrFail($id);
+        $comment = $this->comments()->withTrashed()->findOrFail($id);
 
         $this->replyingToId = $comment->parent_id ?? $comment->id;
         $this->reset('replyBody');
@@ -149,9 +172,9 @@ class Thread extends Component
 
     public function addReply(PostComment $postComment): void
     {
-        $this->authorize('comment', $this->commentable);
+        $this->authorize($this->thread->commentAbility(), $this->commentable);
 
-        $root = $this->commentable->comments()->withTrashed()->findOrFail((int) $this->replyingToId);
+        $root = $this->comments()->withTrashed()->findOrFail((int) $this->replyingToId);
 
         $validated = $this->validate(['replyBody' => ['required', 'string', 'max:'.self::MAX_LENGTH]], attributes: ['replyBody' => 'respuesta']);
 
@@ -188,7 +211,7 @@ class Thread extends Component
 
     public function delete(int $id, DeleteComment $deleteComment): void
     {
-        $comment = $this->commentable->comments()->findOrFail($id);
+        $comment = $this->comments()->findOrFail($id);
         abort_unless($this->canManage($comment), 403);
 
         $deleteComment->handle($comment, auth()->user());
@@ -199,7 +222,7 @@ class Thread extends Component
 
     public function toggleFollow(): void
     {
-        $this->authorize('view', $this->commentable);
+        $this->authorize($this->thread->viewAbility(), $this->commentable);
 
         $isFollowing = ! $this->isFollowing;
         $this->commentable->setFollowing(auth()->user(), $isFollowing);
@@ -213,9 +236,19 @@ class Thread extends Component
      */
     private function findOwn(int $id): TaskComment|PageComment
     {
-        $this->authorize('comment', $this->commentable);
+        $this->authorize($this->thread->commentAbility(), $this->commentable);
 
-        return $this->commentable->comments()->where('user_id', auth()->id())->findOrFail($id);
+        return $this->comments()->where('user_id', auth()->id())->findOrFail($id);
+    }
+
+    /**
+     * Comments of this thread only.
+     *
+     * @return HasMany<TaskComment|PageComment, Task|Page>
+     */
+    private function comments(): HasMany
+    {
+        return $this->commentable->comments()->where('thread', $this->thread);
     }
 
     private function refreshThread(): void

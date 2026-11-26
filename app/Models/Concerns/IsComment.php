@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Enums\CommentThread;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,7 @@ trait IsComment
     {
         return [
             'edited_at' => 'datetime',
+            'thread' => CommentThread::class,
         ];
     }
 

@@ -256,6 +256,19 @@ class Project extends Model
     }
 
     /**
+     * Projects a client user sees in their portal (RN-05, P-06): those of
+     * their clients in the workspace that are marked visible to the client.
+     *
+     * @param  Builder<Project>  $query
+     */
+    public function scopeVisibleToClient(Builder $query, User $user, Workspace $workspace): void
+    {
+        $query->where('projects.workspace_id', $workspace->id)
+            ->where('projects.is_visible_to_client', true)
+            ->whereIn('projects.client_id', $user->clients()->where('clients.workspace_id', $workspace->id)->select('clients.id'));
+    }
+
+    /**
      * Filter projects whose name or description contains the given term.
      *
      * @param  Builder<Project>  $query

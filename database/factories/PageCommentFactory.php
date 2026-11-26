@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CommentThread;
 use App\Models\Page;
 use App\Models\PageComment;
 use App\Models\User;
@@ -24,5 +25,13 @@ class PageCommentFactory extends Factory
             'user_id' => User::factory(),
             'body' => 'Conviene revisar este apartado antes de publicarlo.',
         ];
+    }
+
+    /**
+     * A message of the conversation with the client (P-04).
+     */
+    public function inClientThread(): static
+    {
+        return $this->state(fn (): array => ['thread' => CommentThread::Client]);
     }
 }

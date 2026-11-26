@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CommentThread;
 use App\Enums\PageActivityEvent;
 use App\Models\Concerns\Commentable;
 use App\Models\Concerns\HasComments;
@@ -213,17 +214,26 @@ class Page extends Model implements Commentable
     }
 
     /**
-     * Whoever can see the page: the project team with wiki access, or only
-     * the super admin for the workspace wiki (RN-24).
+     * Whoever can read the thread: the project team with wiki access, or only
+     * the super admin for the workspace wiki (RN-24). The client thread adds
+     * the users of the project's client, or every client user of the
+     * workspace for a workspace page.
      *
      * @return Collection<int, User>
      */
-    public function mentionableUsers(): Collection
+    public function mentionableUsers(CommentThread $thread = CommentThread::Internal): Collection
     {
+        $clientUsers = match (true) {
+            $thread !== CommentThread::Client => [],
+            $this->project_id !== null => $this->project->client?->users()->get() ?? [],
+            default => User::query()->whereHas('clients', fn (Builder $query) => $query->where('clients.workspace_id', $this->workspace_id))->get(),
+        };
+
         return $this->filterMentionable([
             ...($this->project?->members()->get() ?? []),
             $this->accountOwner($this->workspace_id),
-        ]);
+            ...$clientUsers,
+        ], $thread);
     }
 
     /**

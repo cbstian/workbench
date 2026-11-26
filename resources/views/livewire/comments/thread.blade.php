@@ -1,5 +1,11 @@
+@php
+    $isClientThread = $thread === \App\Enums\CommentThread::Client;
+    $isClientUser = $this->readsFromPortal;
+@endphp
+
 <div>
-    <x-ui.section title="Comentarios">
+    <x-ui.section :title="$bare ? null : match (true) { $isClientUser => 'Conversación con el equipo', $isClientThread => $thread->label(), default => 'Comentarios' }"
+                  :description="$isClientThread && ! $isClientUser && ! $bare ? 'Lo que escribas aquí lo ve el cliente en su portal.' : null">
         <x-slot:actions>
             <button type="button" wire:click="toggleFollow" class="inline-flex items-center gap-1 text-xs text-ink-subtle hover:text-ink"
                     title="{{ $this->isFollowing ? 'Recibes avisos de los comentarios nuevos' : 'No recibes avisos, salvo cuando te mencionan o responden' }}">
@@ -10,7 +16,7 @@
 
         <div class="space-y-4">
             @if ($this->threads->isEmpty() && ! $this->canComment)
-                <p class="text-sm text-ink-muted">Sin comentarios.</p>
+                <p class="text-sm text-ink-muted">{{ $isClientThread ? 'Aún no hay mensajes.' : 'Sin comentarios.' }}</p>
             @endif
 
             @foreach ($this->threads as $root)
@@ -44,8 +50,12 @@
                 @include('livewire.comments.partials.composer', [
                     'model' => 'body',
                     'submit' => 'add',
-                    'submitText' => 'Comentar',
-                    'placeholder' => 'Escribe un comentario…',
+                    'submitText' => $isClientThread && $isClientUser ? 'Enviar' : 'Comentar',
+                    'placeholder' => match (true) {
+                        $isClientThread && $isClientUser => 'Escribe una pregunta o un comentario para el equipo…',
+                        $isClientThread => 'Escribe un mensaje para el cliente…',
+                        default => 'Escribe un comentario…',
+                    },
                 ])
             @endif
         </div>

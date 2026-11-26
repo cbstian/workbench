@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CommentThread;
 use App\Models\Concerns\Commentable;
 use App\Models\Concerns\HasPublicUuid;
 use App\Models\Concerns\InheritsWorkspace;
@@ -23,13 +24,14 @@ use Illuminate\Support\Carbon;
  * @property int $workspace_id
  * @property int $page_id
  * @property int|null $parent_id
+ * @property CommentThread $thread
  * @property int $user_id
  * @property string $body
  * @property Carbon|null $edited_at
  * @property Carbon|null $deleted_at
  * @property int|null $deleted_by_id
  */
-#[Fillable(['page_id', 'parent_id', 'user_id', 'body', 'edited_at'])]
+#[Fillable(['page_id', 'parent_id', 'thread', 'user_id', 'body', 'edited_at'])]
 class PageComment extends Model
 {
     /** @use HasFactory<PageCommentFactory> */

@@ -6,6 +6,7 @@ use App\Enums\Permission;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Support\ClientPortal;
 
 /**
  * The super admin creates projects and manages their teams (RN-13, RN-26);
@@ -17,6 +18,15 @@ class ProjectPolicy
     public function view(User $user, Project $project): bool
     {
         return $user->ownsWorkspace($project->workspace) || $user->isOnTeamOf($project);
+    }
+
+    /**
+     * See the project in the client portal (RN-05): a project of one of the
+     * user's clients marked visible to the client.
+     */
+    public function viewInPortal(User $user, Project $project): bool
+    {
+        return app(ClientPortal::class)->canSeeProject($user, $project);
     }
 
     public function create(User $user, Workspace $workspace): bool

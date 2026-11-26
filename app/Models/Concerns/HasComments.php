@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Enums\CommentThread;
 use App\Models\Account;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -77,17 +78,17 @@ trait HasComments
     }
 
     /**
-     * Active candidates who may view this element, without duplicates.
+     * Active candidates who may read the thread of this element, without duplicates.
      *
      * @param  iterable<int, User|null>  $candidates
      * @return Collection<int, User>
      */
-    protected function filterMentionable(iterable $candidates): Collection
+    protected function filterMentionable(iterable $candidates, CommentThread $thread = CommentThread::Internal): Collection
     {
         return Collection::make($candidates)
             ->filter(fn (?User $user): bool => $user !== null && $user->isActive())
             ->unique('id')
-            ->filter(fn (User $user): bool => $user->can('view', $this))
+            ->filter(fn (User $user): bool => $user->can($thread->viewAbility(), $this))
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
     }

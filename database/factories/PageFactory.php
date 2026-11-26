@@ -58,4 +58,12 @@ class PageFactory extends Factory
             'parent_id' => $page->id,
         ]);
     }
+
+    /**
+     * Marked visible to the client (P-14).
+     */
+    public function visibleToClient(): static
+    {
+        return $this->state(fn (): array => ['is_visible_to_client' => true]);
+    }
 }

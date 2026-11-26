@@ -111,7 +111,7 @@
             <livewire:wiki.page-files :page="$page" :editing="$editing" wire:key="page-files-{{ $page->id }}" />
 
             @unless ($editing)
-                <livewire:comments.thread :commentable="$page" wire:key="page-comments-{{ $page->id }}" />
+                <livewire:comments.conversations :commentable="$page" wire:key="page-comments-{{ $page->id }}" />
             @endunless
         </div>
 

@@ -38,7 +38,7 @@ Lo exclusivo del Super admin (crear Workspaces, Clientes, Proyectos y usuarios, 
 | --- | --- |
 | `admin` | todos los del catálogo |
 | `member` | `tasks.view`, `tasks.create`, `tasks.update-assigned`, `wiki.project`, `board.update` |
-| `client` | ninguno (por ahora accede sin ver nada) |
+| `client` | `portal.view`, `portal.comment` (acceso fijo «ver, comentar», P-05) |
 
 ### Perfil Admin
 
@@ -76,11 +76,22 @@ La Pizarra (`/pizarra`) es del Workspace: quien puede ver un Proyecto ve las mis
 
 Las notas no van a la papelera. `board.update` está en el catálogo de admin y de miembro; el rol cliente sigue sin permisos.
 
-### Usuario cliente (E10)
+### Usuario cliente: portal (E10)
 
-- Entra con su correo y contraseña y ve solo Inicio (con los Clientes a los que pertenece) y Ajustes de su perfil.
-- No ve Proyectos, Tareas, wiki ni archivos, aunque estén marcados como visibles para su Cliente (A-08): la habilidad `view-projects` lo excluye y las Policies le niegan cada recurso.
-- No crea ni edita nada (A-03). Las marcas de visibilidad quedan registradas para cuando se defina qué ve el cliente (P-04, P-05, P-06, P-14).
+Las reglas viven en un solo lugar, `App\Support\ClientPortal`; las Policies y el menú le preguntan.
+
+| Qué | Regla | Dónde |
+| --- | --- | --- |
+| Entrar al portal (`/portal`) | Rol `client` en el Workspace, `portal.view` y al menos un Cliente ahí | Habilidad `view-portal`; `view-dashboard` es su negación (Inicio redirige al portal) |
+| Proyectos | De sus Clientes y con `is_visible_to_client` (`Project::scopeVisibleToClient`) | `ProjectPolicy::viewInPortal` |
+| Tareas | Todas las Tareas y subtareas de esos Proyectos, solo lectura (P-06). No ve adjuntos ni sus eventos en el historial | `TaskPolicy::viewInPortal` |
+| Páginas | Marcadas visibles con todas sus Páginas padre visibles, de esos Proyectos o de la wiki del Workspace (la ven todos los clientes del Workspace, P-14). No ve sus archivos | `PagePolicy::viewInPortal` |
+| Conversación con el cliente | Cada Tarea y Página tiene dos hilos (`thread`: `internal` y `client`, P-04). El cliente lee y escribe solo el suyo (`portal.comment`); el equipo lee ambos y escribe en el del cliente mientras el elemento esté visible para él | `viewClientThread`, `commentInClientThread` en `TaskPolicy` y `PagePolicy` |
+| Avisos | Solo de comentarios del hilo que puede leer; al abrirlos llega al portal. El equipo llega a la pestaña «Con el cliente» (`?hilo=cliente`) | `NotifyCommentRecipients`, `OpenNotificationController` |
+
+- Sigue sin entrar a ninguna página interna (Proyectos, Tareas, wiki, Pizarra, archivos), aunque el recurso esté visible para su Cliente (A-08): `view-projects` lo excluye y `view`/`update` le niegan cada recurso.
+- No crea ni edita nada (A-03); solo comenta, y edita o borra sus propios comentarios.
+- Las menciones del hilo del cliente incluyen a los usuarios del Cliente; las del hilo interno, nunca.
 
 ### Ver como otro usuario (suplantación)
 

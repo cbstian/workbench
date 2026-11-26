@@ -56,6 +56,16 @@ class Dashboard extends Component
     public bool $onlyMine = false;
 
     /**
+     * Client users have their own home: the portal of their projects.
+     */
+    public function mount(): void
+    {
+        if (auth()->user()->can('view-portal')) {
+            $this->redirectRoute('portal.index', navigate: true);
+        }
+    }
+
+    /**
      * Time-of-day greeting for the signed-in user, in Spanish.
      */
     #[Computed]

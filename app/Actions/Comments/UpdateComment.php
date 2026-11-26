@@ -2,6 +2,7 @@
 
 namespace App\Actions\Comments;
 
+use App\Enums\CommentThread;
 use App\Models\Concerns\IsComment;
 use App\Models\User;
 use App\Support\Mentions;
@@ -23,7 +24,7 @@ class UpdateComment
     {
         $commentable = $comment->commentable();
 
-        ['body' => $body, 'user_ids' => $mentionedIds] = $this->mentions->canonicalize(trim($body), $commentable->mentionableUsers());
+        ['body' => $body, 'user_ids' => $mentionedIds] = $this->mentions->canonicalize(trim($body), $commentable->mentionableUsers($comment->getAttribute('thread') ?? CommentThread::Internal));
 
         $newlyMentioned = DB::transaction(function () use ($comment, $commentable, $body, $mentionedIds): array {
             $previous = $comment->mentions()->pluck('users.id')->map(fn ($id): int => (int) $id)->all();

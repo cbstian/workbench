@@ -1,73 +1,46 @@
 <?php
 
 use App\Actions\Tasks\StoreTaskAttachment;
-use App\Enums\WorkspaceRole;
 use App\Livewire\Comments\Thread;
-use App\Livewire\Dashboard;
 use App\Livewire\Projects\TaskBoard;
 use App\Models\Client;
 use App\Models\Page;
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
-/**
- * A client user of «Andes Café», whose project is marked visible to the client
- * and has a task, a page and an attachment.
- *
- * @return array{clientUser: User, project: Project, task: Task, page: Page, workspace: Workspace}
- */
-function clientUserSetup(): array
-{
-    Storage::fake('local');
-    [$owner, $workspace] = superAdminWithWorkspace();
-    $client = Client::factory()->for($workspace)->create(['name' => 'Andes Café']);
-    $project = Project::factory()->for($workspace)->for($client)->visibleToClient()->create(['name' => 'Portal del cliente']);
-    $task = Task::factory()->for($project)->create(['name' => 'Tarea del cliente']);
-    $page = Page::factory()->forProject($project)->create(['title' => 'Documentación visible', 'is_visible_to_client' => true]);
-    app(StoreTaskAttachment::class)->handle($task, $owner, UploadedFile::fake()->create('plan.pdf', 5));
-
-    $clientUser = User::factory()->memberOf($workspace, WorkspaceRole::Client)->create(['name' => 'Carla Cliente', 'email' => 'carla@example.com']);
-    $clientUser->clients()->attach($client);
-
-    return compact('clientUser', 'project', 'task', 'page', 'workspace');
-}
-
-it('lets a client user sign in (F-11)', function () {
-    ['clientUser' => $clientUser] = clientUserSetup();
+it('lets a client user sign in and sends them to their portal (F-11)', function () {
+    ['clientUser' => $clientUser] = clientPortalSetup();
 
     $this->post(route('login.store'), ['email' => 'carla@example.com', 'password' => 'password'])
         ->assertRedirect(route('dashboard'));
 
     $this->assertAuthenticatedAs($clientUser);
+
+    $this->get(route('dashboard'))->assertRedirect(route('portal.index'));
 });
 
-it('shows a client user nothing, even what is marked visible to their client (A-08)', function () {
-    ['clientUser' => $clientUser] = clientUserSetup();
+it('shows a client user only the portal in the menu', function () {
+    ['clientUser' => $clientUser] = clientPortalSetup();
 
     $this->actingAs($clientUser)
-        ->get(route('dashboard'))
+        ->get(route('portal.index'))
         ->assertOk()
-        ->assertSeeText('Por ahora no hay contenido para ti')
-        ->assertSeeText('como cliente de Andes Café')
-        ->assertDontSeeText('Portal del cliente')
-        ->assertDontSeeText('Tarea del cliente')
-        ->assertDontSeeText('Documentación visible')
+        ->assertSee(route('portal.index'), escape: false)
+        ->assertSeeText('Mis proyectos')
         ->assertDontSee(route('projects.index'), escape: false)
+        ->assertDontSee(route('tasks.index'), escape: false)
         ->assertDontSeeText('Administración');
-
-    $dashboard = Livewire::actingAs($clientUser)->test(Dashboard::class)->instance();
-
-    expect($dashboard->projects)->toBeEmpty()
-        ->and(collect($dashboard->stats)->sum('value'))->toBe(0);
 });
 
-it('forbids a client user every page of the workspace content', function () {
-    ['clientUser' => $clientUser, 'project' => $project, 'task' => $task, 'page' => $page] = clientUserSetup();
+it('forbids a client user the internal pages, even of what is shared with them (A-08)', function () {
+    Storage::fake('local');
+    ['owner' => $owner, 'clientUser' => $clientUser, 'project' => $project, 'task' => $task] = clientPortalSetup();
+    $page = Page::factory()->forProject($project)->visibleToClient()->create();
+    app(StoreTaskAttachment::class)->handle($task, $owner, UploadedFile::fake()->create('plan.pdf', 5));
 
     $this->actingAs($clientUser);
 
@@ -76,6 +49,8 @@ it('forbids a client user every page of the workspace content', function () {
         route('projects.show', $project),
         route('projects.settings', $project),
         route('projects.wiki', $project),
+        route('tasks.index'),
+        route('board.index'),
         route('tasks.show', $task),
         route('pages.show', $page),
         route('attachments.show', $task->attachments()->sole()),
@@ -90,14 +65,15 @@ it('forbids a client user every page of the workspace content', function () {
     }
 });
 
-it('does not let a client user create or edit anything (A-03)', function () {
-    ['clientUser' => $clientUser, 'project' => $project, 'task' => $task] = clientUserSetup();
+it('does not let a client user create or edit anything, nor read internal comments (A-03)', function () {
+    ['clientUser' => $clientUser, 'project' => $project, 'task' => $task] = clientPortalSetup();
 
     Livewire::actingAs($clientUser)->test(TaskBoard::class, ['project' => $project])->assertForbidden();
     Livewire::actingAs($clientUser)->test(Thread::class, ['commentable' => $task])->assertForbidden();
 
     expect($clientUser->can('create', [Task::class, $project]))->toBeFalse()
         ->and($clientUser->can('update', $task))->toBeFalse()
+        ->and($clientUser->can('comment', $task))->toBeFalse()
         ->and($clientUser->can('create', [Project::class, $project->workspace]))->toBeFalse()
         ->and($clientUser->can('create', [Client::class, $project->workspace]))->toBeFalse()
         ->and($clientUser->can('createMembers', $project->workspace))->toBeFalse()
@@ -105,7 +81,7 @@ it('does not let a client user create or edit anything (A-03)', function () {
 });
 
 it('keeps the client user own settings available', function () {
-    ['clientUser' => $clientUser] = clientUserSetup();
+    ['clientUser' => $clientUser] = clientPortalSetup();
 
     $this->actingAs($clientUser)->get(route('settings.profile'))->assertOk();
 });

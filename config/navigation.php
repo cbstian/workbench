@@ -30,7 +30,8 @@ return [
         [
             'label' => null,
             'items' => [
-                ['label' => 'Inicio', 'route' => 'dashboard', 'icon' => 'home'],
+                ['label' => 'Inicio', 'route' => 'dashboard', 'icon' => 'home', 'can' => 'view-dashboard'],
+                ['label' => 'Inicio', 'route' => 'portal.index', 'icon' => 'home', 'active' => 'portal.index', 'can' => 'view-portal'],
                 ['label' => 'Bandeja', 'route' => 'notifications.index', 'icon' => 'inbox'],
                 ['label' => 'Pizarra', 'route' => 'board.index', 'icon' => 'view-columns', 'can' => 'view-projects'],
                 ['label' => 'Tareas', 'route' => 'tasks.index', 'icon' => 'rectangle-stack', 'can' => 'view-projects'],
@@ -56,6 +57,14 @@ return [
                     'active' => 'projects.index',
                     'can' => 'view-projects',
                     'children' => 'navigation.project-links',
+                ],
+                [
+                    'label' => 'Mis proyectos',
+                    'route' => 'portal.index',
+                    'icon' => 'folder',
+                    'active' => 'portal.projects.*',
+                    'can' => 'view-portal',
+                    'children' => 'navigation.portal-project-links',
                 ],
                 ['label' => 'Wiki del espacio', 'route' => 'wiki.index', 'icon' => 'book-open', 'active' => 'wiki.index', 'can' => 'manage-workspace'],
             ],

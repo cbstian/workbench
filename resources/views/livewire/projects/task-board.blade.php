@@ -262,7 +262,7 @@
             </div>
 
             <div class="mt-8">
-                <livewire:comments.thread :commentable="$editingTask" wire:key="board-comments-{{ $editingTask->id }}-{{ $taskFormVersion }}" />
+                <livewire:comments.conversations :commentable="$editingTask" wire:key="board-comments-{{ $editingTask->id }}-{{ $taskFormVersion }}" />
             </div>
         @endif
 

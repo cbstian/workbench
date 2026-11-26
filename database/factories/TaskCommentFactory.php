@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CommentThread;
 use App\Models\Task;
 use App\Models\TaskComment;
 use App\Models\User;
@@ -24,5 +25,13 @@ class TaskCommentFactory extends Factory
             'user_id' => User::factory(),
             'body' => 'Quedó anotado para la próxima revisión.',
         ];
+    }
+
+    /**
+     * A message of the conversation with the client (P-04).
+     */
+    public function inClientThread(): static
+    {
+        return $this->state(fn (): array => ['thread' => CommentThread::Client]);
     }
 }

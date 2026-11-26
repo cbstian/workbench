@@ -440,12 +440,13 @@ Imposible etiquetar una Tarea con una etiqueta de otro Proyecto.
 | `workspace_id` | `bigint` | no | FK `(task_id, workspace_id) → tasks(id, workspace_id)` |
 | `task_id` | `bigint` restrict | no | |
 | `parent_id` | `bigint → task_comments` restrict | sí | comentario raíz al que responde |
+| `thread` | `text` | no | default `'internal'`; CHECK `internal`/`client`. Conversación interna o con el cliente (P-04) |
 | `user_id` | `bigint → users` restrict | no | autor |
 | `body` | `text` | no | texto plano; las menciones se guardan como `@[uuid-del-usuario]` (RN-10) |
 | `edited_at` | `timestamptz` | sí | |
 | Estándar | ✓ timestamps, borrado lógico | | |
 
-Trigger `task_comments_enforce_single_level_thread`: el padre es un comentario raíz de la misma Tarea (hilos de un nivel). Un raíz en la papelera sigue a la vista como «Comentario eliminado» mientras tenga respuestas.
+Trigger `task_comments_enforce_single_level_thread`: el padre es un comentario raíz de la misma Tarea (hilos de un nivel). Trigger `task_comments_reply_keeps_thread`: una respuesta queda en el `thread` de su raíz. Un raíz en la papelera sigue a la vista como «Comentario eliminado» mientras tenga respuestas.
 
 `page_comments` tiene la misma forma con `page_id` (FK `(page_id, workspace_id) → pages(id, workspace_id)`) y su trigger `page_comments_enforce_single_level_thread`.
 
@@ -757,6 +758,8 @@ Las migraciones de dominio se reescribieron (no hay datos de producción); `migr
 | `2026_11_24_000000_create_board_tables` | prioridad, término, pausa y orden de `projects`; `board_entries`; `board_project_hides` |
 | `2026_11_24_000001_sync_board_permissions` | vuelve a correr `SyncRolePermissions` para otorgar `board.update` |
 | `2026_11_26_155048_add_comment_threads_mentions_and_followers` | `task_comments.parent_id`, `page_comments`, `*_comment_mentions`, `*_followers` + `*_comments_enforce_single_level_thread`; recrea `trash_items` con `page_comment` |
+| `2026_11_26_163533_add_thread_to_comments` | `task_comments.thread`, `page_comments.thread` + `*_comments_reply_keeps_thread` |
+| `2026_11_26_163534_sync_client_portal_permissions` | permisos `portal.view` y `portal.comment` del rol `client` |
 | `2026_11_26_155049_create_notifications_table` | `notifications` de Laravel (bandeja de avisos) |
 
 Se eliminaron `add_access_columns_to_users_table` y `add_workspace_and_client_to_projects_table` (absorbidas).
@@ -802,9 +805,7 @@ Columnas o tablas que **no** se crean ahora, pero que el modelo admite sin redis
 
 | Tema | Pregunta diferida | Cómo encajaría |
 |---|---|---|
-| Qué ve el usuario cliente de una Tarea | P-04, P-06 | `tasks.is_visible_to_client`; `task_comments.is_internal` |
-| Permisos del usuario cliente | P-05 | permisos de spatie con `team_id` o columna `client_user.access_level` |
-| Visibilidad de documentación por sección o archivo | P-14 | `page_files.is_visible_to_client`; tabla `page_client` para Páginas del Workspace visibles a un Cliente |
+| Archivos de Páginas o adjuntos visibles al cliente; Páginas del Workspace para un Cliente específico | P-14 (decidida sin ellos, 2026-11-26) | `page_files.is_visible_to_client`; tabla `page_client` |
 | Notificaciones por correo o en tiempo real | RN-10 | agregar `mail` o `broadcast` a `via()` de `App\Notifications\Comments\CommentNotification` (y `ShouldQueue`); el resto no cambia |
 | Versiones de Páginas | P-15 | `page_revisions (page_id, body, created_by_id, created_at)` |
 | Archivado | P-24 | `archived_at` en Proyectos y Tareas |

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Comments;
 
+use App\Enums\CommentThread;
 use App\Models\Concerns\Commentable;
 use App\Models\Concerns\IsComment;
 use App\Models\User;
@@ -15,7 +16,8 @@ use Illuminate\Support\Facades\Notification;
 /**
  * Sends the inbox alerts of a comment (RN-10): one per person, the most
  * specific one first (mention, then reply, then follow). Never to the
- * author, and only to active users who can still see the element.
+ * author, and only to active users who can still read the thread: a client
+ * user is never alerted of an internal comment.
  */
 class NotifyCommentRecipients
 {
@@ -51,8 +53,10 @@ class NotifyCommentRecipients
             return;
         }
 
+        $ability = ($comment->getAttribute('thread') ?? CommentThread::Internal)->viewAbility();
+
         $users = User::query()->whereKey(array_keys($recipients))->get()
-            ->filter(fn (User $user): bool => $user->isActive() && $user->can('view', $commentable));
+            ->filter(fn (User $user): bool => $user->isActive() && $user->can($ability, $commentable));
 
         foreach ($users as $user) {
             Notification::send($user, new $recipients[$user->id]($comment, $commentable, $actor));

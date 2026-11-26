@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Enums\CommentThread;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -30,11 +31,12 @@ interface Commentable
     public function followers(): BelongsToMany;
 
     /**
-     * Active users who can see it and therefore can be mentioned.
+     * Active users who can read the given thread and therefore can be
+     * mentioned in it. Client users only take part in the client thread.
      *
      * @return Collection<int, User>
      */
-    public function mentionableUsers(): Collection;
+    public function mentionableUsers(CommentThread $thread = CommentThread::Internal): Collection;
 
     /**
      * Users who follow it by their role (creator, assignees) unless they unfollowed.

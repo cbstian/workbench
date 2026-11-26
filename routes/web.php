@@ -10,6 +10,7 @@ use App\Livewire\Board;
 use App\Livewire\Clients;
 use App\Livewire\Dashboard;
 use App\Livewire\Notifications;
+use App\Livewire\Portal;
 use App\Livewire\Projects;
 use App\Livewire\Roles;
 use App\Livewire\Settings;
@@ -62,5 +63,11 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function (): void 
         Route::livewire('/clients', Clients\Index::class)->name('clients.index');
         Route::livewire('/users', Users\Index::class)->name('users.index');
         Route::livewire('/trash', Trash\Index::class)->name('trash.index');
+
+        Route::prefix('portal')->name('portal.')->group(function (): void {
+            Route::livewire('/', Portal\Home::class)->name('index');
+            Route::livewire('/proyectos/{project}', Portal\ProjectShow::class)->name('projects.show');
+            Route::livewire('/paginas/{page}', Portal\PageShow::class)->name('pages.show');
+        });
     });
 });

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\User;
+use App\Support\ClientPortal;
 use App\Support\CurrentWorkspace;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -48,6 +49,14 @@ class AppServiceProvider extends ServiceProvider
             return $workspace !== null
                 && ($user->ownsWorkspace($workspace) || $user->roleIn($workspace)?->isInternal() === true);
         });
+
+        Gate::define('view-portal', function (User $user): bool {
+            $workspace = app(CurrentWorkspace::class)->get();
+
+            return $workspace !== null && app(ClientPortal::class)->isClientIn($user, $workspace);
+        });
+
+        Gate::define('view-dashboard', fn (User $user): bool => ! $user->can('view-portal'));
 
         Gate::define('view-members', function (User $user): bool {
             $workspace = app(CurrentWorkspace::class)->get();

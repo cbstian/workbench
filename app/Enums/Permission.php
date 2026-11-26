@@ -22,6 +22,8 @@ enum Permission: string
     case ProjectWiki = 'wiki.project';
     case ProjectTrash = 'trash.project';
     case BoardUpdate = 'board.update';
+    case PortalView = 'portal.view';
+    case PortalComment = 'portal.comment';
 
     /**
      * Abilities reserved to the super admin (RN-14, RN-24, RN-25, RN-26).
@@ -55,6 +57,8 @@ enum Permission: string
             self::ProjectWiki => 'Ver y editar la wiki de sus proyectos',
             self::ProjectTrash => 'Ver y restaurar la papelera de sus proyectos',
             self::BoardUpdate => 'Crear y editar notas en la pizarra de sus proyectos',
+            self::PortalView => 'Ver en su portal los proyectos y la documentación visibles para su cliente',
+            self::PortalComment => 'Comentar en la conversación con el cliente de tareas y páginas',
         };
     }
 }

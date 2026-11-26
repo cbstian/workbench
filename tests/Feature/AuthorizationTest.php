@@ -14,7 +14,7 @@ it('creates the global workspace roles with their permissions', function () {
     $roles = Role::query()->whereNull('team_id')->with('permissions')->get()->keyBy('name');
 
     expect($roles->keys()->sort()->values()->all())->toBe(['admin', 'client', 'member'])
-        ->and($roles['client']->permissions)->toBeEmpty()
+        ->and($roles['client']->permissions->pluck('name')->sort()->values()->all())->toBe([Permission::PortalComment->value, Permission::PortalView->value])
         ->and($roles['member']->permissions->pluck('name')->all())->toContain(Permission::TasksUpdateAssigned->value)
         ->and($roles['member']->permissions->pluck('name')->all())->not->toContain(Permission::TasksUpdateAny->value);
 });

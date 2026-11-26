@@ -34,7 +34,7 @@ enum WorkspaceRole: string
         return match ($this) {
             self::Admin => 'Hace todo dentro de sus proyectos y puede crear miembros para ellos.',
             self::Member => 'Ve todas las tareas de sus proyectos y edita solo las asignadas.',
-            self::Client => 'Pertenece a uno o más clientes. Por ahora entra sin ver nada.',
+            self::Client => 'Pertenece a uno o más clientes. Ve en su portal lo que su cliente tiene visible y lo comenta.',
         };
     }
 
@@ -85,7 +85,10 @@ enum WorkspaceRole: string
                 Permission::ProjectWiki,
                 Permission::BoardUpdate,
             ],
-            self::Client => [],
+            self::Client => [
+                Permission::PortalView,
+                Permission::PortalComment,
+            ],
         };
     }
 

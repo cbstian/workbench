@@ -2,6 +2,7 @@
 
 namespace App\Actions\Comments;
 
+use App\Enums\CommentThread;
 use App\Models\Concerns\Commentable;
 use App\Models\Concerns\IsComment;
 use App\Models\User;
@@ -20,10 +21,12 @@ class PostComment
     public function __construct(private Mentions $mentions, private NotifyCommentRecipients $notifier) {}
 
     /**
+     * A reply joins the thread of its root, whatever thread is given.
+     *
      * @param  (Model&IsComment)|null  $replyTo
      * @return Model&IsComment
      */
-    public function handle(Commentable&Model $commentable, User $author, string $body, ?Model $replyTo = null): Model
+    public function handle(Commentable&Model $commentable, User $author, string $body, ?Model $replyTo = null, CommentThread $thread = CommentThread::Internal): Model
     {
         $parentId = null;
 
@@ -31,15 +34,17 @@ class PostComment
             $root = $replyTo->isReply() ? $replyTo->parent()->withTrashed()->firstOrFail() : $replyTo;
             abort_unless($commentable->comments()->withTrashed()->whereKey($root->getKey())->exists(), 404);
             $parentId = $root->getKey();
+            $thread = $root->getAttribute('thread') ?? CommentThread::Internal;
         }
 
-        ['body' => $body, 'user_ids' => $mentionedIds] = $this->mentions->canonicalize(trim($body), $commentable->mentionableUsers());
+        ['body' => $body, 'user_ids' => $mentionedIds] = $this->mentions->canonicalize(trim($body), $commentable->mentionableUsers($thread));
 
         /** @var Model&IsComment $comment */
-        $comment = DB::transaction(function () use ($commentable, $author, $body, $parentId, $mentionedIds): Model {
+        $comment = DB::transaction(function () use ($commentable, $author, $body, $parentId, $thread, $mentionedIds): Model {
             $comment = $commentable->comments()->create([
                 'user_id' => $author->id,
                 'parent_id' => $parentId,
+                'thread' => $thread,
                 'body' => $body,
             ]);
 

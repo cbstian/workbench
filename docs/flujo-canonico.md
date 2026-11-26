@@ -46,7 +46,7 @@ Cada usuario ve solo los Workspaces que creó o a los que fue invitado. Solo el 
   - interfaz solo en español, con los estados por defecto traducidos.
 - **No entra (explícito):**
   - registro abierto;
-  - qué ve y qué hace el usuario cliente (diferido: P-04, P-05, P-06, P-14);
+  - el usuario cliente ve y comenta en su portal lo que su Cliente tiene visible (P-04, P-05, P-06, P-14, decididas 2026-11-26);
   - archivado;
   - vaciar la papelera;
   - biblioteca de archivos fuera de las Páginas;
@@ -119,7 +119,7 @@ Estados relevantes:
 | E7 | Vistas y filtros | F-08 | E5 |
 | E8 | Wiki y archivos | F-09 | E1, E4 |
 | E9 | Papelera | F-10 | E2, E4, E5, E8 |
-| E10 | Acceso del usuario cliente | F-11 | E3 |
+| E10 | Portal del usuario cliente | F-11 | E3, E5, E6, E8 |
 | E11 | Pizarra | F-12 | E4, E5, E7, E10 |
 
 ### E1 · Super admin y Workspaces
@@ -274,18 +274,20 @@ Estados relevantes:
   - [ ] Dado un elemento en la papelera, cuando se restaura, entonces vuelve a estar activo.
   - [ ] Dada la papelera, cuando se intenta vaciar, entonces no existe esa opción.
 
-### E10 · Acceso del usuario cliente
-- **Objetivo:** que el usuario cliente pueda acceder, sin ver nada por ahora.
-- **Depende de:** E3.
+### E10 · Portal del usuario cliente
+- **Objetivo:** que el usuario cliente siga el avance de los Proyectos que su Cliente tiene visibles, lea su documentación y converse con el equipo.
+- **Depende de:** E3, E5, E6 (comentarios), E8 (wiki).
 - **Cubre:** F-11 · A-03, A-08 · RN-04, RN-05.
-- **Terminado cuando:** un usuario cliente inicia sesión y no ve Proyectos, Tareas ni documentación, aunque estén marcados como visibles para su Cliente.
+- **Terminado cuando:** un usuario cliente inicia sesión, ve en su portal los Proyectos visibles de sus Clientes en kanban, listado y calendario, lee las Páginas visibles y comenta en la conversación con el cliente de cada Tarea y Página, sin ver nada interno.
 
-#### F-11 · Acceder como usuario cliente
+#### F-11 · Usar el portal del cliente
 - **Actor y situación:** usuario cliente creado por el Super admin.
-- **Acción y resultado esperado:** inicia sesión con su correo y password y no ve nada. Las marcas de visibilidad de Proyectos y documentación quedan registradas para cuando se defina qué ve el cliente (diferido: P-04, P-05, P-06, P-14).
+- **Acción y resultado esperado:** inicia sesión y llega a su portal (`/portal`): por cada Cliente, sus Proyectos visibles con su avance, las próximas entregas y la documentación del Workspace compartida. En un Proyecto ve todas sus Tareas y subtareas (solo lectura) en kanban, listado o calendario y su documentación; una Tarea se abre en un panel con estado, prioridad, fechas, descripción, responsables, subtareas, historial y la conversación con el cliente. No ve adjuntos, archivos de Páginas, comentarios internos ni la Pizarra.
 - **Criterios de aceptación:**
-  - [ ] Dado un usuario cliente, cuando inicia sesión, entonces accede, pero no ve Proyectos, Tareas ni documentación.
-  - [ ] Dado un usuario cliente, cuando intenta crear o editar algo, entonces no se permite.
+  - [x] Dado un usuario cliente, cuando inicia sesión, entonces llega a su portal con los Proyectos visibles de sus Clientes, y no a los de otros Clientes ni a los no visibles.
+  - [x] Dada una Página marcada visible, cuando todas sus Páginas padre también lo son, entonces el cliente la lee; si no, no.
+  - [x] Dado un usuario cliente, cuando escribe en la conversación de una Tarea o Página, entonces el equipo lo ve en la pestaña «Con el cliente» y recibe el aviso; los comentarios internos nunca llegan al cliente.
+  - [x] Dado un usuario cliente, cuando intenta crear o editar algo, o abrir una página interna, entonces no se permite.
 
 ### E11 · Pizarra
 - **Objetivo:** que Sebastián vea, en un monitor vertical, qué hay que hacer cada día en sus Proyectos, en cuáles trabajó, la prioridad y lo vencido, en lugar de la pizarra física.
@@ -321,7 +323,7 @@ Estados relevantes:
 | A-05 | F-05 | Proyecto con Cliente marcado como no visible | La marca queda registrada; por ahora el usuario cliente no ve nada de todos modos |
 | A-06 | F-06 | Fecha de término anterior a la fecha de inicio | No se permite |
 | A-07 | F-09 | Documentación no marcada como visible para el Cliente | La marca queda registrada; por ahora el usuario cliente no ve nada de todos modos |
-| A-08 | F-11 | Usuario cliente intenta ver un Proyecto, incluso de su Cliente | Por ahora no ve nada |
+| A-08 | F-11 | Usuario cliente intenta ver un Proyecto no visible, de otro Cliente, o una página interna | No se permite; solo entra al portal |
 | A-09 | F-04 | Usuario desactivado intenta entrar | No se permite; el bloqueo es lógico |
 | A-10 | F-04 | Usuario eliminado intenta entrar | No se permite; el borrado es lógico |
 | A-11 | F-06 | Crear una subtarea dentro de una subtarea | No se permite: un solo nivel |
@@ -346,8 +348,8 @@ Estados relevantes:
 - **RN-01** Sin registro abierto: los usuarios se crean por consola, y cada usuario creado así es Super admin de su cuenta.
 - **RN-02** Jerarquía: Workspace > Cliente > Proyecto. Todo pertenece a un Workspace; un Cliente tiene cero o muchos Proyectos; un Proyecto puede o no estar relacionado con un Cliente.
 - **RN-03** Un Workspace tiene varios usuarios y un usuario puede estar en varios Workspaces; cada usuario ve solo los Workspaces que creó o a los que fue invitado.
-- **RN-04** Los usuarios cliente tienen nombre, correo y password, son distintos de admins y miembros y pueden pertenecer a más de un Cliente. Por ahora pueden acceder, pero sin ver nada.
-- **RN-05** La visibilidad para el Cliente de Proyectos y documentación se marca y se registra, pero por ahora no tiene efecto visible.
+- **RN-04** Los usuarios cliente tienen nombre, correo y password, son distintos de admins y miembros y pueden pertenecer a más de un Cliente. Ven y comentan en su portal lo que sus Clientes tienen visible (acceso fijo «ver, comentar», P-05).
+- **RN-05** La visibilidad para el Cliente se marca por Proyecto (con todas sus Tareas, P-06) y por Página; una Página se muestra solo si sus Páginas padre también son visibles, y las del Workspace las ven todos los clientes del Workspace (P-14). Cada Tarea y Página tiene dos conversaciones: la interna y la con el cliente (P-04).
 - **RN-06** Estados, prioridades y etiquetas de tarea son por Proyecto y se pueden configurar. Estados por defecto, en español: Backlog, Por hacer, En curso, Hecho, Cancelado. No hay etiquetas por defecto. Si se borra un estado, las Tareas a las que fue aplicado pasan al estado inicial configurado en el Proyecto; una Tarea nunca queda sin estado.
 - **RN-07** Una Tarea tiene nombre, descripción, adjuntos, comentarios, historial de cambios, fecha de inicio y término, asignados, etiquetas, estado, prioridad y subtareas. El estado es obligatorio al crear una Tarea y nunca queda vacío. La fecha de término no puede quedar antes que la de inicio.
 - **RN-08** Todo cambio en una Tarea queda en su historial de cambios.
@@ -375,10 +377,10 @@ Estados relevantes:
 Resueltas el 2026-10-12: P-01, P-02, P-03, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-15, P-16, P-17, P-18, P-19, P-20 (reemplazada por P-29), P-21, P-22, P-24, P-25, P-26, P-27 y P-28; P-23, P-29, P-30, P-31, P-32, P-33 y P-34. Ver Decisiones cerradas.
 
 Diferidas (no se definen en el MVP; Sebastián: «Por ahora no definamos nada del cliente»):
-- **P-04** Qué ve el usuario cliente de una Tarea (adjuntos, historial, comentarios internos).
-- **P-05** Si el acceso del usuario cliente es fijo («ver, comentar») o se elige por usuario.
-- **P-06** Si se pueden ocultar Tareas individuales al Cliente y si la visibilidad se elige por usuario.
-- **P-14** Si la visibilidad de la documentación se elige por Página, sección o archivo, y si una Página del Workspace se puede mostrar a un Cliente específico.
+- **P-04** ~~Qué ve el usuario cliente de una Tarea~~ Decidida 2026-11-26.
+- **P-05** ~~Si el acceso del usuario cliente es fijo o por usuario~~ Decidida 2026-11-26.
+- **P-06** ~~Si se pueden ocultar Tareas individuales~~ Decidida 2026-11-26.
+- **P-14** ~~Visibilidad de la documentación~~ Decidida 2026-11-26.
 
 Abiertas: ninguna por ahora.
 
@@ -397,7 +399,8 @@ Abiertas: ninguna por ahora.
 - **(2026-10-12, P-17)** «El usuario solo ve los workspace que creo o a los cuales fue invitado.»
 - **(2026-10-12, P-03)** «un cliente si puede ser mas de un cliente»: un usuario cliente puede pertenecer a más de un Cliente.
 - **(2026-10-12, P-18)** «El super admin puede desactivar el acceso o eliminar usuarios. El borrado y el bloqueo es lógico.»
-- **(2026-10-12, P-04, P-05, P-06, P-14)** «Por ahora no definamos nada del cliente, solo que pueda acceder pero sin ver nada.» Las marcas de visibilidad de Proyectos y documentación se conservan registradas, sin efecto visible por ahora.
+- **(2026-10-12, P-04, P-05, P-06, P-14; reemplazada el 2026-11-26)** «Por ahora no definamos nada del cliente, solo que pueda acceder pero sin ver nada.»
+- **(2026-11-26, P-04, P-05, P-06, P-14)** Portal del cliente: ve kanban, listado y calendario de los Proyectos a los que tiene acceso y las Páginas de wiki visibles, y comenta en cada una. Comentarios en «dos hilos separados» (interno y con el cliente). Ve «todas» las Tareas de un Proyecto visible. Wiki: «Proyecto + espacio», con Páginas padre visibles. En la Tarea ve además «asignados, subtareas, historial de cambios» (no adjuntos). Acceso fijo «ver, comentar».
 - **(2026-10-12, P-12)** «Si, pero no a un cliente»: una Tarea puede tener varios asignados, pero no un usuario cliente.
 - **(2026-10-12, P-08)** Prioridad: «ninguna, baja, media, alta, urgente».
 - **(2026-10-12, P-09)** «1 nivel de subtarea, mismos datos».

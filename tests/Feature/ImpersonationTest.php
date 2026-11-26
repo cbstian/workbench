@@ -57,9 +57,11 @@ it('lets the super admin see the app as a client user (E10)', function () {
 
     $this->actingAs($owner)->post(route('impersonation.start', $clientUser->uuid));
 
-    $this->get(route('dashboard'))
+    $this->get(route('dashboard'))->assertRedirect(route('portal.index'));
+
+    $this->get(route('portal.index'))
         ->assertOk()
-        ->assertSeeText('Por ahora no hay contenido para ti')
+        ->assertSeeText('Carla Cliente')
         ->assertSeeText('(Cliente)');
 });
 

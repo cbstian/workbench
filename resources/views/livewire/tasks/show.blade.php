@@ -77,7 +77,7 @@
             @endif
 
             <livewire:tasks.attachments :task="$task" wire:key="attachments-{{ $task->id }}" />
-            <livewire:comments.thread :commentable="$task" wire:key="comments-{{ $task->id }}" />
+            <livewire:comments.conversations :commentable="$task" wire:key="comments-{{ $task->id }}" />
         </div>
 
         <aside class="min-w-0">

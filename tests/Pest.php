@@ -1,6 +1,10 @@
 <?php
 
+use App\Enums\WorkspaceRole;
 use App\Models\Account;
+use App\Models\Client;
+use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -60,4 +64,33 @@ function superAdminWithWorkspace(array $ownerAttributes = []): array
     $workspace = Workspace::factory()->for(Account::factory()->for($owner, 'owner'))->create();
 
     return [$owner->fresh(), $workspace];
+}
+
+/**
+ * A client user of «Andes Café» with a project shared with them (one task,
+ * assigned to a team member), a project of the same client not shared, and
+ * a shared project of another client.
+ *
+ * @return array{owner: User, workspace: Workspace, client: Client, clientUser: User, member: User, project: Project, task: Task, hiddenProject: Project, otherProject: Project}
+ */
+function clientPortalSetup(): array
+{
+    [$owner, $workspace] = superAdminWithWorkspace();
+    $client = Client::factory()->for($workspace)->create(['name' => 'Andes Café']);
+    $otherClient = Client::factory()->for($workspace)->create(['name' => 'Río Azul']);
+
+    $project = Project::factory()->for($workspace)->for($client)->visibleToClient()->create(['name' => 'Portal del cliente']);
+    $hiddenProject = Project::factory()->for($workspace)->for($client)->create(['name' => 'Proyecto reservado', 'is_visible_to_client' => false]);
+    $otherProject = Project::factory()->for($workspace)->for($otherClient)->visibleToClient()->create(['name' => 'Proyecto ajeno']);
+
+    $member = User::factory()->memberOf($workspace)->create(['name' => 'Mario Miembro']);
+    $project->members()->attach($member);
+
+    $task = Task::factory()->for($project)->create(['name' => 'Tarea del cliente', 'created_by_id' => $owner->id]);
+    $task->assignees()->attach($member);
+
+    $clientUser = User::factory()->memberOf($workspace, WorkspaceRole::Client)->create(['name' => 'Carla Cliente', 'email' => 'carla@example.com']);
+    $clientUser->clients()->attach($client);
+
+    return compact('owner', 'workspace', 'client', 'clientUser', 'member', 'project', 'task', 'hiddenProject', 'otherProject');
 }
