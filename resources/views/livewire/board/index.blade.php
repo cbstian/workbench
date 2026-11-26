@@ -1,12 +1,4 @@
 <x-ui.page wire:poll.visible.45s>
-    <svg class="absolute size-0 text-ink-subtle" aria-hidden="true">
-        <defs>
-            <pattern id="wb-board-wave" width="14" height="8" patternUnits="userSpaceOnUse">
-                <path d="M0 5 Q 3.5 1 7 5 T 14 5" fill="none" stroke="currentColor" stroke-width="1" />
-            </pattern>
-        </defs>
-    </svg>
-
     @unless ($focus)
     <x-ui.page-header title="Pizarra" icon="📋"
                       :description="'Semana del '.$this->weekLabel.'. Notas compartidas de lo que hay que hacer cada día.'">
@@ -46,7 +38,7 @@
         <li class="flex items-center gap-1.5"><span class="size-2 rounded-sm border border-line bg-surface"></span> Planificada</li>
         <li class="flex items-center gap-1.5"><x-icon icon="check" class="size-3 text-priority-medium" /> Hecha</li>
         <li class="flex items-center gap-1.5"><span class="size-2 rounded-sm border border-overdue bg-surface"></span> Vencida</li>
-        <li class="flex items-center gap-1.5"><span class="inline-block h-3 w-4 text-ink-subtle"><svg class="h-full w-full" aria-hidden="true"><rect width="100%" height="100%" fill="url(#wb-board-wave)" /></svg></span> En pausa</li>
+        <li class="flex items-center gap-1.5"><x-icon icon="pause" class="size-3 text-ink-subtle" /> En pausa (fila atenuada)</li>
         <li class="flex items-center gap-1.5"><span class="size-1 rounded-full bg-ink-subtle"></span> Sin trabajo</li>
     </ul>
     @endunless
@@ -119,12 +111,6 @@
                            class="group">
                         <tr>
                             <th class="sticky left-0 z-10 w-56 border-b border-r border-line bg-canvas py-1.5 pr-2 pl-3.5 text-left align-top font-normal">
-                                @if ($project->isPaused())
-                                    <svg class="pointer-events-none absolute inset-0 h-full w-full text-ink-subtle" aria-hidden="true">
-                                        <rect width="100%" height="100%" fill="url(#wb-board-wave)" />
-                                    </svg>
-                                    <span class="sr-only">En pausa.</span>
-                                @endif
                                 @if ($this->canReorder)
                                     {{-- Drag handle in the left gutter: shown on hover, takes no room from the name. --}}
                                     <button type="button" wire:sort:handle
@@ -155,12 +141,19 @@
                                         @endif
                                         <a href="{{ route('projects.show', $project) }}" wire:navigate title="{{ $project->name }}"
                                            @class([
-                                               'line-clamp-2 min-w-0 flex-1 text-xs leading-snug font-medium text-ink hover:underline',
-                                               'line-through decoration-ink-subtle' => $project->isPaused(),
+                                               'line-clamp-2 min-w-0 flex-1 text-xs leading-snug font-medium hover:underline',
+                                               'text-ink' => ! $project->isPaused(),
+                                               'text-ink-muted' => $project->isPaused(),
                                            ])>{{ $project->icon }} {{ $project->name }}</a>
                                     </div>
 
                                     <div class="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px]">
+                                        @if ($project->isPaused())
+                                            <span class="inline-flex items-center gap-0.5 rounded border border-line bg-surface px-1 font-medium text-ink-muted">
+                                                <x-icon icon="pause" class="size-3" />
+                                                En pausa
+                                            </span>
+                                        @endif
                                         @if ($this->canReorder)
                                             <span x-data="{ editing: false }" class="inline-flex">
                                                 <button type="button" x-show="!editing" x-on:click="editing = true; $nextTick(() => $refs.due.focus())"

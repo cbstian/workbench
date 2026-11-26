@@ -14,19 +14,16 @@
         @click="if (!adding && $event.target === $el) { adding = true; $nextTick(() => $refs.note.focus()) }"
     @endif
     data-date="{{ $date }}" data-idle="{{ $idle ? '1' : '0' }}">
-    @if ($project->isPaused())
-        <svg class="pointer-events-none absolute inset-0 h-full w-full text-ink-subtle" aria-hidden="true">
-            <rect width="100%" height="100%" fill="url(#wb-board-wave)" />
-        </svg>
-    @endif
-
     @if ($idle)
         <span class="absolute top-1 right-1 z-[1] size-1 rounded-full bg-ink-subtle" title="Sin trabajo este día">
             <span class="sr-only">Sin trabajo este día</span>
         </span>
     @endif
 
-    <div class="relative flex min-h-8 flex-col gap-1">
+    <div @class([
+        'relative flex min-h-8 flex-col gap-1',
+        'opacity-50 transition-opacity group-hover:opacity-100 focus-within:opacity-100' => $project->isPaused(),
+    ])>
         @foreach ($entries as $entry)
             @include('livewire.board.partials.entry', ['entry' => $entry, 'choices' => $choices, 'onProjectRow' => $onProjectRow])
         @endforeach
