@@ -16,6 +16,7 @@
 @import './components/landing.css';
 @import './components/scrollbar.css';
 @import './components/prose.css';
+@import './components/emoji-picker.css';
 
 @plugin '@tailwindcss/forms';
 

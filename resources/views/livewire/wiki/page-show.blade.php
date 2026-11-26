@@ -35,8 +35,8 @@
         <div class="min-w-0 space-y-8">
             @if ($editing)
                 <form wire:submit="save" class="space-y-5">
-                    <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-4">
-                        <x-input label="Icono" wire:model="icon" maxlength="32" />
+                    <div class="grid grid-cols-[auto_minmax(0,1fr)] gap-4">
+                        <x-ui.icon-picker wire:model="icon" />
                         <x-input label="Título *" wire:model="title" maxlength="255" />
                     </div>
 
@@ -51,15 +51,8 @@
                             <p class="mt-1 text-xs text-ink-subtle">Se registra; por ahora el usuario cliente no ve nada.</p>
                         </div>
 
-                        <div class="sm:col-span-2 space-y-2">
-                            <x-select.styled label="Etiquetas" wire:model="labelIds" :options="$this->labelOptions" multiple searchable
-                                             hint="Etiquetas de wiki del espacio, distintas de las de tareas." />
-                            <div class="flex items-start gap-2">
-                                <div class="min-w-0 flex-1">
-                                    <x-input wire:model="newLabel" placeholder="Nueva etiqueta…" maxlength="64" wire:keydown.enter.prevent="addLabel" />
-                                </div>
-                                <x-button text="Crear etiqueta" sm flat color="secondary" wire:click="addLabel" />
-                            </div>
+                        <div class="sm:col-span-2">
+                            @include('livewire.wiki.partials.label-picker')
                         </div>
                     </x-ui.form-grid>
 
@@ -80,7 +73,7 @@
                 @endif
 
                 @if (filled($page->body))
-                    <article class="wb-prose">{!! $page->bodyHtml() !!}</article>
+                    <article class="wb-prose rounded-xl border border-line bg-surface px-6 py-5 shadow-xs sm:px-8 sm:py-7">{!! $page->bodyHtml() !!}</article>
                 @else
                     <x-ui.empty-state icon="document-text" title="Esta página está vacía">
                         <x-button icon="pencil-square" text="Escribir" sm wire:click="startEditing" />
@@ -88,30 +81,34 @@
                 @endif
             @endif
 
-            <x-ui.section title="Subpáginas">
-                @if ($this->subpages->isNotEmpty())
-                    <ul class="divide-y divide-line rounded-lg border border-line bg-surface">
-                        @foreach ($this->subpages as $subpage)
-                            <li wire:key="subpage-{{ $subpage->id }}">
-                                <a href="{{ route('pages.show', $subpage) }}" wire:navigate class="flex items-center gap-3 px-3 py-2 hover:bg-hover">
-                                    <span aria-hidden="true">{{ $subpage->icon ?? '📄' }}</span>
-                                    <span class="min-w-0 flex-1 truncate text-sm text-ink">{{ $subpage->title }}</span>
-                                    <span class="text-xs text-ink-subtle">{{ $subpage->updated_at->diffForHumans() }}</span>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+            @if ($editing || $this->subpages->isNotEmpty())
+                <x-ui.section title="Subpáginas">
+                    @if ($this->subpages->isNotEmpty())
+                        <ul class="divide-y divide-line rounded-lg border border-line bg-surface">
+                            @foreach ($this->subpages as $subpage)
+                                <li wire:key="subpage-{{ $subpage->id }}">
+                                    <a href="{{ route('pages.show', $subpage) }}" wire:navigate class="flex items-center gap-3 px-3 py-2 hover:bg-hover">
+                                        <span aria-hidden="true">{{ $subpage->icon ?? '📄' }}</span>
+                                        <span class="min-w-0 flex-1 truncate text-sm text-ink">{{ $subpage->title }}</span>
+                                        <span class="text-xs text-ink-subtle">{{ $subpage->updated_at->diffForHumans() }}</span>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
 
-                <form wire:submit="addSubpage" class="flex items-start gap-2">
-                    <div class="min-w-0 flex-1">
-                        <x-input wire:model="newSubpageTitle" placeholder="Nueva subpágina…" maxlength="255" />
-                    </div>
-                    <x-button type="submit" icon="plus" text="Agregar" sm loading="addSubpage" />
-                </form>
-            </x-ui.section>
+                    @if ($editing)
+                        <form wire:submit="addSubpage" class="flex items-start gap-2">
+                            <div class="min-w-0 flex-1">
+                                <x-input wire:model="newSubpageTitle" placeholder="Nueva subpágina…" maxlength="255" />
+                            </div>
+                            <x-button type="submit" icon="plus" text="Agregar" sm loading="addSubpage" class="h-9 shrink-0" />
+                        </form>
+                    @endif
+                </x-ui.section>
+            @endif
 
-            <livewire:wiki.page-files :page="$page" wire:key="page-files-{{ $page->id }}" />
+            <livewire:wiki.page-files :page="$page" :editing="$editing" wire:key="page-files-{{ $page->id }}" />
         </div>
 
         <aside class="min-w-0 lg:col-start-2 xl:col-start-auto">

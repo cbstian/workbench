@@ -18,6 +18,8 @@
         "@laravel/multiplex": "^0.4.1"
     },
     "dependencies": {
-        "apexcharts": "^8.1.0"
+        "apexcharts": "^8.1.0",
+        "emoji-picker-element": "1.29.1",
+        "emoji-picker-element-data": "1.8.0"
     }
 }

@@ -1,4 +1,5 @@
 <div>
+    @if ($editing || $this->files->isNotEmpty())
     <x-ui.section title="Archivos">
         <div class="space-y-3">
             @if ($this->files->isNotEmpty())
@@ -11,16 +12,21 @@
                                 <p class="truncate text-xs text-ink-subtle">{{ $file->humanSize() }} · {{ $file->uploader?->name ?? '—' }} · {{ $file->created_at->diffForHumans() }}</p>
                             </div>
                             <x-button.circle icon="arrow-down-tray" sm flat color="secondary" :href="route('page-files.show', $file)" :aria-label="'Descargar '.$file->original_name" />
-                            <x-button.circle icon="trash" sm flat color="secondary" wire:click="delete({{ $file->id }})"
-                                             wire:confirm="¿Enviar «{{ $file->original_name }}» a la papelera?"
-                                             :aria-label="'Eliminar '.$file->original_name" />
+                            @if ($editing)
+                                <x-button.circle icon="trash" sm flat color="secondary" wire:click="delete({{ $file->id }})"
+                                                 wire:confirm="¿Enviar «{{ $file->original_name }}» a la papelera?"
+                                                 :aria-label="'Eliminar '.$file->original_name" />
+                            @endif
                         </li>
                     @endforeach
                 </ul>
             @endif
 
-            <x-upload wire:model="uploads" multiple :preview="false" close-after-upload
-                      placeholder="Subir archivos a esta página…" tip="Hasta 10 archivos de 10 MB cada uno" />
+            @if ($editing)
+                <x-upload wire:model="uploads" multiple :preview="false" close-after-upload
+                          placeholder="Subir archivos a esta página…" tip="Hasta 10 archivos de 10 MB cada uno" />
+            @endif
         </div>
     </x-ui.section>
+    @endif
 </div>

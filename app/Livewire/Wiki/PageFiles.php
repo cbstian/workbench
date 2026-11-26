@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Reactive;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -29,6 +30,12 @@ class PageFiles extends Component
 
     #[Locked]
     public Page $page;
+
+    /**
+     * Upload and delete controls are shown only while the page is being edited.
+     */
+    #[Reactive]
+    public bool $editing = false;
 
     /**
      * @var list<TemporaryUploadedFile>

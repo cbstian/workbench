@@ -29,6 +29,21 @@ class WikiLabel extends Model
     use HasFactory, SoftDeletes, TracksDeleter;
 
     /**
+     * Colors new labels take in turn, so they are told apart without asking for one.
+     *
+     * @var list<string>
+     */
+    public const array COLORS = ['#8f6b4a', '#337ea9', '#448361', '#d9730d', '#9065b0', '#c14c8a', '#c2922a', '#c4554d'];
+
+    /**
+     * The color for the next label of a workspace (cycles through COLORS).
+     */
+    public static function nextColorFor(Workspace $workspace): string
+    {
+        return self::COLORS[$workspace->wikiLabels()->withTrashed()->count() % count(self::COLORS)];
+    }
+
+    /**
      * @return BelongsTo<Workspace, $this>
      */
     public function workspace(): BelongsTo

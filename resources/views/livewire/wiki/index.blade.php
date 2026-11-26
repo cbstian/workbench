@@ -66,8 +66,8 @@
 
     <x-slide id="page-slide" wire="showForm" title="Nueva página" size="md">
         <form id="page-form" wire:submit="save" class="space-y-5">
-            <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-4">
-                <x-input label="Icono" wire:model="icon" maxlength="32" />
+            <div class="grid grid-cols-[auto_minmax(0,1fr)] gap-4">
+                <x-ui.icon-picker wire:model="icon" />
                 <x-input label="Título *" wire:model="title" maxlength="255" />
             </div>
             <x-select.styled label="Dentro de" wire:model="parentId" :options="$this->parentOptions()" searchable placeholder="Raíz de la wiki" />

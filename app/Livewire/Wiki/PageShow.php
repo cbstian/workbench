@@ -96,14 +96,27 @@ class PageShow extends Component
     }
 
     /**
-     * @return list<array{label: string, value: int}>
+     * @return list<array{label: string, value: int, color: string|null}>
      */
     #[Computed]
     public function labelOptions(): array
     {
-        return $this->page->workspace->wikiLabels()->orderBy('name')->get(['id', 'name'])
-            ->map(fn (WikiLabel $label): array => ['label' => $label->name, 'value' => $label->id])
+        return $this->page->workspace->wikiLabels()->orderBy('name')->get(['id', 'name', 'color'])
+            ->map(fn (WikiLabel $label): array => ['label' => $label->name, 'value' => $label->id, 'color' => $label->color])
             ->all();
+    }
+
+    /**
+     * The labels chosen in the form, in the order they were added.
+     *
+     * @return list<array{label: string, value: int, color: string|null}>
+     */
+    #[Computed]
+    public function selectedLabels(): array
+    {
+        $options = array_column($this->labelOptions, null, 'value');
+
+        return array_values(array_filter(array_map(fn (int $id): ?array => $options[$id] ?? null, $this->labelIds)));
     }
 
     /**
@@ -187,11 +200,29 @@ class PageShow extends Component
         $name = trim($validated['newLabel']);
 
         $label = $this->page->workspace->wikiLabels()->whereRaw('lower(name) = ?', [mb_strtolower($name)])->first()
-            ?? $this->page->workspace->wikiLabels()->create(['name' => $name]);
+            ?? $this->page->workspace->wikiLabels()->create(['name' => $name, 'color' => WikiLabel::nextColorFor($this->page->workspace)]);
 
         $this->labelIds = array_values(array_unique([...$this->labelIds, $label->id]));
         $this->newLabel = '';
-        unset($this->labelOptions);
+        unset($this->labelOptions, $this->selectedLabels);
+    }
+
+    /**
+     * Add an existing wiki label to the form, or take it out if it was chosen.
+     */
+    public function toggleLabel(int $labelId): void
+    {
+        $this->authorize('update', $this->page);
+
+        if (! in_array($labelId, array_column($this->labelOptions, 'value'), true)) {
+            return;
+        }
+
+        $this->labelIds = in_array($labelId, $this->labelIds, true)
+            ? array_values(array_diff($this->labelIds, [$labelId]))
+            : [...$this->labelIds, $labelId];
+
+        unset($this->selectedLabels);
     }
 
     public function addSubpage(): void

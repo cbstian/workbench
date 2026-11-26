@@ -9,6 +9,7 @@ use App\Livewire\Wiki\PageShow;
 use App\Models\Page;
 use App\Models\Project;
 use App\Models\User;
+use App\Models\WikiLabel;
 use App\Models\Workspace;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -155,6 +156,46 @@ it('labels pages with workspace wiki labels and finds them by label (F-09)', fun
         ->assertSeeText('Resultados')
         ->assertSeeTextInOrder(['Resultados', 'Con etiqueta'])
         ->assertDontSeeText('No encontramos');
+});
+
+it('gives new wiki labels a color and toggles existing ones on the page', function () {
+    ['project' => $project, 'admin' => $admin] = wikiSetup();
+    $page = Page::factory()->forProject($project)->create();
+    $existing = WikiLabel::factory()->for($project->workspace)->create(['name' => 'Guía']);
+
+    $component = Livewire::actingAs($admin)->test(PageShow::class, ['page' => $page])
+        ->call('startEditing')
+        ->set('newLabel', 'Procesos')
+        ->call('addLabel')
+        ->call('toggleLabel', $existing->id);
+
+    $created = $project->workspace->wikiLabels()->where('name', 'Procesos')->sole();
+
+    expect($created->color)->toBeIn(WikiLabel::COLORS)
+        ->and($component->get('labelIds'))->toBe([$created->id, $existing->id]);
+
+    $component->call('toggleLabel', $existing->id)
+        ->call('toggleLabel', WikiLabel::factory()->create()->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($page->labels()->pluck('wiki_labels.id')->all())->toBe([$created->id]);
+});
+
+it('shows subpage and file controls only while editing the page', function () {
+    ['project' => $project, 'admin' => $admin] = wikiSetup();
+    $page = Page::factory()->forProject($project)->create();
+
+    Livewire::actingAs($admin)->test(PageShow::class, ['page' => $page])
+        ->assertDontSee('Nueva subpágina…')
+        ->call('startEditing')
+        ->assertSee('Nueva subpágina…');
+
+    Livewire::actingAs($admin)->test(PageFiles::class, ['page' => $page])
+        ->assertDontSee('Subir archivos a esta página…');
+
+    Livewire::actingAs($admin)->test(PageFiles::class, ['page' => $page, 'editing' => true])
+        ->assertSee('Subir archivos a esta página…');
 });
 
 it('searches pages by text', function () {

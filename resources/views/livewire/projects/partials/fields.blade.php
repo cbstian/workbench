@@ -3,8 +3,8 @@
     the project settings page. Expects $clientOptions.
 --}}
 <x-ui.form-grid cols="2">
-    <div class="sm:col-span-2 grid grid-cols-[5rem_minmax(0,1fr)] gap-4">
-        <x-input label="Icono" wire:model="form.icon" maxlength="32" hint="Un emoji." />
+    <div class="sm:col-span-2 grid grid-cols-[auto_minmax(0,1fr)] gap-4">
+        <x-ui.icon-picker wire:model="form.icon" placeholder="📁" />
         <x-input label="Nombre *" wire:model="form.name" />
     </div>
 
