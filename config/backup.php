@@ -237,10 +237,14 @@ return [
         'notifiable' => Notifiable::class,
 
         'mail' => [
-            'to' => env('BACKUP_NOTIFICATION_EMAIL', env('MAIL_FROM_ADDRESS')),
+            /*
+             * The package validates this address when the app boots, so an empty
+             * value would break every artisan command (including deploys).
+             */
+            'to' => env('BACKUP_NOTIFICATION_EMAIL') ?: env('MAIL_FROM_ADDRESS') ?: 'hello@example.com',
 
             'from' => [
-                'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+                'address' => env('MAIL_FROM_ADDRESS') ?: 'hello@example.com',
                 'name' => env('MAIL_FROM_NAME', 'Workbench'),
             ],
         ],

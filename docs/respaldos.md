@@ -25,16 +25,20 @@ Se excluye `storage/app/private/livewire-tmp` (subidas temporales de Livewire).
 Variables del `.env`:
 
 ```dotenv
-BACKUP_NAME=workbench
 BACKUP_ARCHIVE_PASSWORD=          # obligatoria; guardarla también FUERA del VPS
-BACKUP_NOTIFICATION_EMAIL=
-BACKUP_S3_KEY=
-BACKUP_S3_SECRET=
-BACKUP_S3_REGION=auto             # R2: auto · B2: p. ej. us-west-004
-BACKUP_S3_BUCKET=
-BACKUP_S3_ENDPOINT=               # R2: https://<cuenta>.r2.cloudflarestorage.com · B2: https://s3.<región>.backblazeb2.com
-BACKUP_S3_USE_PATH_STYLE_ENDPOINT=false
-DB_DUMP_BINARY_PATH=              # solo si pg_dump no está en el PATH (carpeta, sin el binario)
+BACKUP_NOTIFICATION_EMAIL=        # si queda vacía se usa MAIL_FROM_ADDRESS
+BACKUP_S3_KEY=                    # keyID de la application key de Backblaze
+BACKUP_S3_SECRET=                 # applicationKey
+BACKUP_S3_BUCKET=workbench-backups-cbs
+```
+
+Opcionales (solo si cambia algo del entorno):
+
+```dotenv
+BACKUP_NAME=workbench             # carpeta dentro del bucket; usar otro valor en local si se prueba contra el mismo bucket
+BACKUP_S3_REGION=us-east-005      # región de la cuenta Backblaze
+BACKUP_S3_ENDPOINT=https://s3.us-east-005.backblazeb2.com
+DB_DUMP_BINARY_PATH=              # carpeta de pg_dump si no está en el PATH o hay otra versión (p. ej. /usr/lib/postgresql/17/bin)
 ```
 
 ## Programación
