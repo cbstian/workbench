@@ -1,12 +1,17 @@
 {{--
     Fields of App\Livewire\Forms\TaskForm. Expects a component using
-    App\Livewire\Concerns\WithTaskOptions and an optional $readonly flag.
+    App\Livewire\Concerns\WithTaskOptions, an optional $readonly flag and an
+    optional $editorKey that changes whenever the form loads another task: the
+    editor ignores server re-renders, so a new key replaces it.
 --}}
 @php($readonly = $readonly ?? false)
+@php($editorKey = $editorKey ?? 'default')
 
 <div class="space-y-5">
     <x-input label="Nombre *" wire:model="form.name" maxlength="255" :readonly="$readonly" />
-    <x-textarea label="Descripción" wire:model="form.description" rows="5" :readonly="$readonly" />
+    <x-editor label="Descripción" wire:model="form.description" markdown min-height="8rem" max-height="50vh"
+              wire:key="task-description-{{ $editorKey }}-{{ $readonly ? 'ro' : 'rw' }}" :readonly="$readonly"
+              :toolbar="['style', 'bold', 'italic', 'strikethrough', 'unordered-list', 'ordered-list', 'blockquote', 'code', 'code-block', 'link', 'hr', 'undo', 'redo', 'fullscreen']" />
 
     <x-ui.form-grid cols="2">
         <x-select.styled label="Estado *" wire:model="form.status_id" :options="$this->statusOptions" required :disabled="$readonly" />

@@ -3,9 +3,11 @@
 namespace App\Livewire\Projects;
 
 use App\Actions\Tasks\MoveTask;
+use App\Actions\Tasks\StoreTaskAttachment;
 use App\Enums\TaskView;
 use App\Livewire\Concerns\WithTaskOptions;
 use App\Livewire\Forms\TaskForm;
+use App\Livewire\Tasks\Attachments;
 use App\Models\Project;
 use App\Models\ProjectStatus;
 use App\Models\ProjectTaskView;
@@ -18,6 +20,8 @@ use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 use TallStackUi\Traits\Interactions;
 
 /**
@@ -26,11 +30,12 @@ use TallStackUi\Traits\Interactions;
  * project in project_task_views, so they are still active on return.
  *
  * The same filtered root tasks feed the three views. In the kanban a task is
- * dragged to another status or position (MoveTask).
+ * dragged to another status or position (MoveTask). Clicking a task in any
+ * view opens it in the same slide used to create one, with its attachments.
  */
 class TaskBoard extends Component
 {
-    use Interactions, WithTaskOptions;
+    use Interactions, WithFileUploads, WithTaskOptions;
 
     /**
      * Columns the list view may sort by.
@@ -82,6 +87,26 @@ class TaskBoard extends Component
     public TaskForm $form;
 
     public bool $showTaskForm = false;
+
+    /**
+     * Task open in the slide, or null while creating one.
+     */
+    #[Locked]
+    public ?int $editingTaskId = null;
+
+    /**
+     * Bumped on every opening of the slide, so the description editor and the
+     * attachments are replaced instead of keeping the previous task.
+     */
+    #[Locked]
+    public int $taskFormVersion = 0;
+
+    /**
+     * Files picked while creating a task, stored once it exists.
+     *
+     * @var list<TemporaryUploadedFile>
+     */
+    public array $pendingUploads = [];
 
     public function mount(): void
     {
@@ -283,6 +308,11 @@ class TaskBoard extends Component
 
         $this->form->setProject($this->project);
         $this->form->resetValidation();
+        $this->resetValidation('pendingUploads');
+        $this->editingTaskId = null;
+        $this->pendingUploads = [];
+        $this->taskFormVersion++;
+        unset($this->editingTask);
 
         if ($statusId !== null && $this->project->statuses()->whereKey($statusId)->exists()) {
             $this->form->status_id = $statusId;
@@ -295,15 +325,116 @@ class TaskBoard extends Component
         $this->showTaskForm = true;
     }
 
+    /**
+     * Open a task of the project in the slide. Whoever sees it may open it;
+     * only those who may update it get editable fields (A-17).
+     */
+    public function editTask(int $taskId): void
+    {
+        $task = $this->project->tasks()->findOrFail($taskId);
+        $this->authorize('view', $task);
+
+        $this->form->setTask($task);
+        $this->form->resetValidation();
+        $this->editingTaskId = $task->id;
+        $this->pendingUploads = [];
+        $this->taskFormVersion++;
+        unset($this->editingTask);
+
+        $this->showTaskForm = true;
+    }
+
+    #[Computed]
+    public function editingTask(): ?Task
+    {
+        return $this->editingTaskId === null ? null : $this->project->tasks()->find($this->editingTaskId);
+    }
+
+    #[Computed]
+    public function canEditTask(): bool
+    {
+        return $this->editingTask !== null && auth()->user()->can('update', $this->editingTask);
+    }
+
     public function saveTask(): void
     {
+        if ($this->editingTaskId !== null) {
+            $this->updateTask();
+
+            return;
+        }
+
         $this->authorize('create', [Task::class, $this->project]);
 
+        $this->validate(
+            ['pendingUploads' => ['array', 'max:10'], 'pendingUploads.*' => ['file', 'max:'.Attachments::MAX_KILOBYTES]],
+            ['pendingUploads.*.max' => 'Cada archivo puede pesar hasta 10 MB.'],
+            ['pendingUploads' => 'adjuntos', 'pendingUploads.*' => 'adjunto'],
+        );
+
         $task = $this->form->store(auth()->user());
+        $attached = $this->storePendingUploads($task);
 
         $this->showTaskForm = false;
         unset($this->tasks);
-        $this->toast()->success('Tarea creada', "«{$task->name}» quedó en {$task->status->name}.")->send();
+        $this->toast()->success('Tarea creada', "«{$task->name}» quedó en {$task->status->name}".match ($attached) {
+            0 => '.',
+            1 => ', con 1 adjunto.',
+            default => ", con {$attached} adjuntos.",
+        })->send();
+    }
+
+    /**
+     * Remove a file picked for the new task (x-upload delete button).
+     *
+     * @param  array{temporary_name: string}  $content
+     */
+    public function deleteUpload(array $content): void
+    {
+        $this->pendingUploads = array_values(array_filter(
+            $this->pendingUploads,
+            function (TemporaryUploadedFile $upload) use ($content): bool {
+                if ($upload->getFilename() !== $content['temporary_name']) {
+                    return true;
+                }
+
+                rescue(fn () => $upload->delete(), report: false);
+
+                return false;
+            },
+        ));
+    }
+
+    private function updateTask(): void
+    {
+        $task = $this->editingTask ?? abort(404);
+        $this->authorize('update', $task);
+
+        $this->form->update(auth()->user());
+
+        $this->showTaskForm = false;
+        unset($this->tasks, $this->editingTask);
+        $this->toast()->success('Tarea guardada')->send();
+    }
+
+    /**
+     * Store the files picked while creating, if the creator may attach to the
+     * new task. Returns how many were stored.
+     */
+    private function storePendingUploads(Task $task): int
+    {
+        $uploads = $this->pendingUploads;
+        $this->pendingUploads = [];
+
+        if ($uploads === [] || auth()->user()->cannot('collaborate', $task)) {
+            return 0;
+        }
+
+        foreach ($uploads as $upload) {
+            app(StoreTaskAttachment::class)->handle($task, auth()->user(), $upload);
+        }
+
+        return count($uploads);
     }
 
     /**

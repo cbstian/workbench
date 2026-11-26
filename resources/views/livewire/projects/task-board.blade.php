@@ -73,12 +73,12 @@
                     <ul wire:sort="moveTask" wire:sort:group="tasks" wire:sort:group-id="{{ $column->id }}"
                         class="flex min-h-16 flex-1 flex-col gap-2">
                         @foreach ($columnTasks as $task)
-                            <li wire:key="card-{{ $task->id }}" wire:sort:item="{{ $task->id }}"
-                                class="cursor-grab rounded-md border border-line bg-surface p-2.5 shadow-xs active:cursor-grabbing">
-                                <a href="{{ route('tasks.show', $task) }}" wire:navigate
-                                   @class(['block text-sm hover:underline', 'text-ink-muted line-through' => $task->completed_at, 'text-ink' => ! $task->completed_at])>
+                            <li wire:key="card-{{ $task->id }}" wire:sort:item="{{ $task->id }}" wire:click="editTask({{ $task->id }})"
+                                class="cursor-pointer rounded-md border border-line bg-surface p-2.5 shadow-xs transition-colors hover:border-line-strong active:cursor-grabbing">
+                                <button type="button"
+                                        @class(['block w-full text-left text-sm', 'text-ink-muted line-through' => $task->completed_at, 'text-ink' => ! $task->completed_at])>
                                     {{ $task->name }}
-                                </a>
+                                </button>
 
                                 @if ($task->labels->isNotEmpty())
                                     <div class="mt-2 flex flex-wrap gap-1">
@@ -127,10 +127,10 @@
                         @foreach ($this->listTasks as $task)
                             <tr wire:key="row-{{ $task->id }}" class="hover:bg-hover">
                                 <td class="max-w-sm px-4 py-2.5">
-                                    <a href="{{ route('tasks.show', $task) }}" wire:navigate
-                                       @class(['block truncate hover:underline', 'text-ink-muted line-through' => $task->completed_at, 'text-ink' => ! $task->completed_at])>
+                                    <button type="button" wire:click="editTask({{ $task->id }})"
+                                            @class(['block max-w-full truncate text-left hover:underline', 'text-ink-muted line-through' => $task->completed_at, 'text-ink' => ! $task->completed_at])>
                                         {{ $task->name }}
-                                    </a>
+                                    </button>
                                     @if ($task->subtasks_count > 0)
                                         <span class="text-xs text-ink-subtle">{{ $task->closed_subtasks_count }}/{{ $task->subtasks_count }} subtareas</span>
                                     @endif
@@ -199,12 +199,12 @@
                                 ])>{{ $day['date']->day }}</p>
 
                                 @foreach ($day['tasks']->take(3) as $task)
-                                    <a href="{{ route('tasks.show', $task) }}" wire:navigate wire:key="cal-{{ $day['date']->format('md') }}-{{ $task->id }}"
-                                       title="{{ $task->name }}"
-                                       @class(['flex items-center gap-1 truncate rounded border border-line bg-surface px-1.5 py-0.5 text-xs hover:bg-hover', 'text-ink-muted line-through' => $task->completed_at, 'text-ink' => ! $task->completed_at])>
+                                    <button type="button" wire:click="editTask({{ $task->id }})" wire:key="cal-{{ $day['date']->format('md') }}-{{ $task->id }}"
+                                            title="{{ $task->name }}"
+                                            @class(['flex w-full items-center gap-1 truncate rounded border border-line bg-surface px-1.5 py-0.5 text-left text-xs hover:bg-hover', 'text-ink-muted line-through' => $task->completed_at, 'text-ink' => ! $task->completed_at])>
                                         <span class="size-1.5 shrink-0 rounded-full bg-ink-subtle" @if ($task->status->color) style="background-color: {{ $task->status->color }}" @endif aria-hidden="true"></span>
                                         <span class="truncate">{{ $task->name }}</span>
-                                    </a>
+                                    </button>
                                 @endforeach
 
                                 @if ($day['tasks']->count() > 3)
@@ -218,16 +218,57 @@
         </div>
     @endif
 
-    @if ($this->canCreateTasks)
-        <x-slide id="task-slide" wire="showTaskForm" title="Nueva tarea" size="xl">
-            <form id="task-form" wire:submit="saveTask">
-                @include('livewire.tasks.partials.fields')
-            </form>
+    {{-- Create a task, or open one from any view --}}
+    @php($editingTask = $this->editingTask)
+    <x-slide id="task-slide" wire="showTaskForm" :title="$editingTask ? 'Tarea' : 'Nueva tarea'" size="xl">
+        @if ($editingTask)
+            <div class="mb-5 flex flex-wrap items-center gap-2">
+                @if ($editingTask->completed_at)
+                    <x-badge text="Cerrada" color="green" light round />
+                @endif
+                @if ($editingTask->parent)
+                    <span class="text-sm text-ink-muted">Subtarea de «{{ $editingTask->parent->name }}»</span>
+                @endif
+                <a href="{{ route('tasks.show', $editingTask) }}" wire:navigate
+                   class="ml-auto inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink hover:underline">
+                    Abrir página completa
+                    <x-icon icon="arrow-top-right-on-square" class="size-4" />
+                </a>
+            </div>
 
-            <x-slot:footer>
-                <x-button flat color="secondary" text="Cancelar" sm wire:click="$set('showTaskForm', false)" />
+            @unless ($this->canEditTask)
+                <div class="mb-5 flex items-start gap-2 rounded-md border border-line bg-hover px-3 py-2 text-sm text-ink-muted">
+                    <x-icon icon="lock-closed" class="mt-0.5 size-4 shrink-0" />
+                    Puedes ver esta tarea, pero solo la editan los admins del proyecto y quienes la tienen asignada.
+                </div>
+            @endunless
+        @endif
+
+        <form id="task-form" wire:submit="saveTask" class="space-y-8">
+            @include('livewire.tasks.partials.fields', [
+                'readonly' => $editingTask !== null && ! $this->canEditTask,
+                'editorKey' => $taskFormVersion,
+            ])
+
+            @unless ($editingTask)
+                <x-upload label="Adjuntos" wire:model="pendingUploads" multiple delete
+                          placeholder="Adjuntar archivos…" tip="Hasta 10 archivos de 10 MB cada uno" />
+            @endunless
+        </form>
+
+        @if ($editingTask)
+            <div class="mt-8">
+                <livewire:tasks.attachments :task="$editingTask" wire:key="board-attachments-{{ $editingTask->id }}-{{ $taskFormVersion }}" />
+            </div>
+        @endif
+
+        <x-slot:footer>
+            <x-button flat color="secondary" :text="$editingTask && ! $this->canEditTask ? 'Cerrar' : 'Cancelar'" sm wire:click="$set('showTaskForm', false)" />
+            @if (! $editingTask)
                 <x-button type="submit" form="task-form" text="Crear tarea" sm loading="saveTask" />
-            </x-slot:footer>
-        </x-slide>
-    @endif
+            @elseif ($this->canEditTask)
+                <x-button type="submit" form="task-form" text="Guardar cambios" sm loading="saveTask" />
+            @endif
+        </x-slot:footer>
+    </x-slide>
 </div>

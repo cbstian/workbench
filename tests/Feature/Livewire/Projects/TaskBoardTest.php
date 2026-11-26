@@ -8,6 +8,8 @@ use App\Models\Project;
 use App\Models\ProjectTaskView;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 /**
@@ -173,6 +175,87 @@ it('opens the new task form in a kanban column', function () {
         ->call('createTask', $doing)
         ->assertSet('form.status_id', $doing)
         ->assertSet('showTaskForm', true);
+});
+
+it('opens a task in the slide and saves its changes', function () {
+    [$owner, $project] = boardProject();
+    $task = Task::factory()->for($project)->create(['name' => 'Redactar contrato']);
+
+    Livewire::actingAs($owner)->test(TaskBoard::class, ['project' => $project])
+        ->call('editTask', $task->id)
+        ->assertSet('showTaskForm', true)
+        ->assertSet('editingTaskId', $task->id)
+        ->assertSet('form.name', 'Redactar contrato')
+        ->set('form.name', 'Revisar contrato')
+        ->set('form.description', "**Urgente**\n\n- Cláusula 3")
+        ->call('saveTask')
+        ->assertHasNoErrors()
+        ->assertSet('showTaskForm', false);
+
+    $task->refresh();
+
+    expect($task->name)->toBe('Revisar contrato')
+        ->and($task->description)->toBe("**Urgente**\n\n- Cláusula 3")
+        ->and($task->activities()->where('event', TaskActivityEvent::Updated)->exists())->toBeTrue();
+});
+
+it('lets a member open a task that is not assigned to them but not save it (A-17)', function () {
+    [, $project] = boardProject();
+    $member = User::factory()->memberOf($project->workspace)->create();
+    $project->members()->attach($member);
+    $task = Task::factory()->for($project)->create(['name' => 'Ajena']);
+
+    Livewire::actingAs($member)->test(TaskBoard::class, ['project' => $project])
+        ->call('editTask', $task->id)
+        ->assertSet('showTaskForm', true)
+        ->set('form.name', 'Cambiada')
+        ->call('saveTask')
+        ->assertForbidden();
+
+    expect($task->fresh()->name)->toBe('Ajena');
+});
+
+it('does not open a task of another project', function () {
+    [$owner, $project] = boardProject();
+    $other = Task::factory()->for(Project::factory()->for($project->workspace))->create();
+
+    Livewire::actingAs($owner)->test(TaskBoard::class, ['project' => $project])
+        ->call('editTask', $other->id)
+        ->assertNotFound();
+});
+
+it('stores the files picked while creating a task', function () {
+    Storage::fake('local');
+    [$owner, $project] = boardProject();
+
+    Livewire::actingAs($owner)->test(TaskBoard::class, ['project' => $project])
+        ->call('createTask')
+        ->set('form.name', 'Con adjuntos')
+        ->set('pendingUploads', [
+            UploadedFile::fake()->create('poder.pdf', 120, 'application/pdf'),
+            UploadedFile::fake()->create('nota.txt', 1),
+        ])
+        ->call('saveTask')
+        ->assertHasNoErrors()
+        ->assertSet('pendingUploads', []);
+
+    $task = $project->tasks()->where('name', 'Con adjuntos')->sole();
+
+    expect($task->attachments()->orderBy('original_name')->pluck('original_name')->all())->toBe(['nota.txt', 'poder.pdf']);
+});
+
+it('does not create the task when a picked file is over 10 MB', function () {
+    Storage::fake('local');
+    [$owner, $project] = boardProject();
+
+    Livewire::actingAs($owner)->test(TaskBoard::class, ['project' => $project])
+        ->call('createTask')
+        ->set('form.name', 'Pesada')
+        ->set('pendingUploads', [UploadedFile::fake()->create('video.mp4', 10241)])
+        ->call('saveTask')
+        ->assertHasErrors('pendingUploads.0');
+
+    expect($project->tasks()->where('name', 'Pesada')->exists())->toBeFalse();
 });
 
 it('navigates the calendar months', function () {
